@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # テスト用アプリケーション
+  app-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: ccteam-app-test
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://ccteam:password@postgres-test:5432/ccteam_test
+      - REDIS_URL=redis://redis-test:6379
+      - JWT_SECRET=test-jwt-secret
+      - SESSION_SECRET=test-session-secret
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - ccteam-test-network
+    command: npm run test:ci
+
+  # テスト用PostgreSQL
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: ccteam-postgres-test
+    environment:
+      - POSTGRES_USER=ccteam
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ccteam_test
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - ccteam-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccteam -d ccteam_test"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  # テスト用Redis
+  redis-test:
+    image: redis:7-alpine
+    container_name: ccteam-redis-test
+    command: redis-server --save "" --appendonly no
+    tmpfs:
+      - /data
+    networks:
+      - ccteam-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  # E2Eテスト用Nginx
+  nginx-test:
+    image: nginx:alpine
+    container_name: ccteam-nginx-test
+    volumes:
+      - ./docker/nginx/nginx.test.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app-test
+    networks:
+      - ccteam-test-network
+    ports:
+      - "3000:80"
+
+networks:
+  ccteam-test-network:
+    driver: bridge
+
+# ボリュームは使用しない（テストの独立性のため）

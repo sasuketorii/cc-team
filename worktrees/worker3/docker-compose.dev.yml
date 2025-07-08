@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  # 開発用Node.jsアプリケーション（ホットリロード対応）
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: ccteam-app-dev
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Node.jsデバッグポート
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://ccteam:password@postgres:5432/ccteam_dev
+      - REDIS_URL=redis://redis:6379
+      - DEBUG=app:*
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ccteam-network
+    command: npm run dev:debug
+    stdin_open: true
+    tty: true
+
+  # PostgreSQL（開発用設定）
+  postgres:
+    image: postgres:15-alpine
+    container_name: ccteam-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=ccteam
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ccteam_dev
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backups/postgres:/backups
+    networks:
+      - ccteam-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccteam -d ccteam_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis（開発用設定）
+  redis:
+    image: redis:7-alpine
+    container_name: ccteam-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - ccteam-network
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx（開発用軽量設定）
+  nginx:
+    image: nginx:alpine
+    container_name: ccteam-nginx-dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - ./public:/usr/share/nginx/html:ro
+    depends_on:
+      - app
+    networks:
+      - ccteam-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Adminer（データベース管理）
+  adminer:
+    image: adminer:latest
+    container_name: ccteam-adminer-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+      - ADMINER_DESIGN=pepa-linha-dark
+    depends_on:
+      - postgres
+    networks:
+      - ccteam-network
+
+  # MailHog（開発用メールサーバー）
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: ccteam-mailhog-dev
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - ccteam-network
+
+  # Redis Commander（Redis管理）
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ccteam-redis-commander-dev
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - ccteam-network
+
+networks:
+  ccteam-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
