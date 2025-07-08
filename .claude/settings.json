@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[PreEdit] Checking file operation by {{.agent}} at {{.timestamp}}' >> logs/hooks.log"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[{{.timestamp}}] {{.agent}}: {{.tool}} completed' >> logs/tool-usage.log"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[Command] {{.tool_input.command}}' >> logs/command-history.log"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": ".*error.*|.*fail.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[ERROR] {{.message}}' >> logs/error-notifications.log"
+          }
+        ]
+      }
+    ]
+  }
+}

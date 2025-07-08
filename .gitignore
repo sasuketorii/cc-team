@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# Logs
+logs/*.log
+*.log
+
+# Test artifacts
+test-tmp-*
+test-results-*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.env.local
+
+# Claude settings (local)
+.claude/settings.local.json
+
+# Temporary files
+tmp/
+*.tmp
+*.backup
+
+# Build outputs
+dist/
+build/
+
+# Coverage
+coverage/
+.coverage
+
+# Reports (keep directory but not contents)
+reports/*
+\!reports/.gitkeep
+EOF < /dev/null

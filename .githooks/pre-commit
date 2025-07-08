@@ -1,0 +1,8 @@
+#!/bin/bash
+# Git pre-commit hook - 品質チェックを実行してからコミット
+
+# 品質ゲートチェック実行
+./scripts/quality-gate.sh pre-commit
+
+# 結果に基づいてコミットを許可/拒否
+exit $?

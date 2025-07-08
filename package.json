@@ -1,0 +1,31 @@
+{
+  "name": "ccteam",
+  "version": "0.0.1",
+  "description": "Claude Code Team - AI-Powered Development Environment",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "build": "echo 'Build script placeholder'",
+    "dev": "echo 'Dev server placeholder'",
+    "version:bump": "./scripts/version-manager.sh bump",
+    "version:minor": "./scripts/version-manager.sh minor",
+    "version:major": "./scripts/version-manager.sh major",
+    "version:rollback": "./scripts/version-manager.sh rollback",
+    "quality:check": "./scripts/quality-gate.sh report",
+    "ai:setup": "./scripts/setup-models-simple.sh",
+    "claude:sdk": "./scripts/claude-sdk-integration.sh"
+  },
+  "keywords": [
+    "claude",
+    "ai",
+    "development",
+    "automation"
+  ],
+  "author": "CCTeam",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ccteam.git"
+  }
+}

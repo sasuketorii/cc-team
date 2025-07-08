@@ -1,0 +1,185 @@
+name: Quality Protection CI/CD
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+
+jobs:
+  quality-gate:
+    name: 🛡️ Quality Gate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: 🧪 Run Tests with Coverage
+        run: |
+          npm test -- --coverage --ci
+          echo "TEST_COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')" >> $GITHUB_ENV
+      
+      - name: 🔍 Lint Check
+        run: |
+          npm run lint -- --format json > lint-results.json || true
+          echo "LINT_ERRORS=$(cat lint-results.json | jq '[.[] | .errorCount] | add')" >> $GITHUB_ENV
+      
+      - name: 📘 TypeScript Check
+        run: |
+          npx tsc --noEmit 2>&1 | tee typescript-results.txt
+          echo "TS_ERRORS=$(grep -c "error TS" typescript-results.txt || echo 0)" >> $GITHUB_ENV
+      
+      - name: 🔒 Security Audit
+        run: |
+          npm audit --json > audit-results.json || true
+          echo "VULNERABILITIES=$(cat audit-results.json | jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical')" >> $GITHUB_ENV
+      
+      - name: 🏗️ Build Check
+        run: npm run build
+      
+      - name: 📊 Quality Report
+        if: always()
+        run: |
+          cat << EOF > quality-report.md
+          # 📋 Quality Report
+          
+          | Metric | Value | Status |
+          |--------|-------|--------|
+          | Test Coverage | ${{ env.TEST_COVERAGE }}% | ${{ env.TEST_COVERAGE >= 80 && '✅' || '❌' }} |
+          | Lint Errors | ${{ env.LINT_ERRORS }} | ${{ env.LINT_ERRORS == 0 && '✅' || '❌' }} |
+          | TypeScript Errors | ${{ env.TS_ERRORS }} | ${{ env.TS_ERRORS == 0 && '✅' || '❌' }} |
+          | Security Issues | ${{ env.VULNERABILITIES }} | ${{ env.VULNERABILITIES == 0 && '✅' || '❌' }} |
+          EOF
+          
+          cat quality-report.md >> $GITHUB_STEP_SUMMARY
+      
+      - name: 🚦 Quality Gate Decision
+        run: |
+          QUALITY_SCORE=100
+          
+          if [ "${{ env.TEST_COVERAGE }}" -lt 80 ]; then
+            echo "❌ Test coverage too low: ${{ env.TEST_COVERAGE }}%"
+            QUALITY_SCORE=$((QUALITY_SCORE - 20))
+          fi
+          
+          if [ "${{ env.LINT_ERRORS }}" -gt 0 ]; then
+            echo "❌ Lint errors found: ${{ env.LINT_ERRORS }}"
+            QUALITY_SCORE=$((QUALITY_SCORE - 15))
+          fi
+          
+          if [ "${{ env.TS_ERRORS }}" -gt 0 ]; then
+            echo "❌ TypeScript errors: ${{ env.TS_ERRORS }}"
+            QUALITY_SCORE=$((QUALITY_SCORE - 25))
+          fi
+          
+          if [ "${{ env.VULNERABILITIES }}" -gt 0 ]; then
+            echo "❌ Security vulnerabilities: ${{ env.VULNERABILITIES }}"
+            QUALITY_SCORE=$((QUALITY_SCORE - 30))
+          fi
+          
+          echo "QUALITY_SCORE=$QUALITY_SCORE" >> $GITHUB_ENV
+          
+          if [ $QUALITY_SCORE -lt 70 ]; then
+            echo "🚫 Quality gate FAILED (Score: $QUALITY_SCORE/100)"
+            exit 1
+          fi
+          
+          echo "✅ Quality gate PASSED (Score: $QUALITY_SCORE/100)"
+      
+      - name: 🏷️ Add PR Labels
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const score = ${{ env.QUALITY_SCORE }};
+            let labels = [];
+            
+            if (score >= 90) labels.push('quality: excellent');
+            else if (score >= 80) labels.push('quality: good');
+            else if (score >= 70) labels.push('quality: acceptable');
+            else labels.push('quality: needs-improvement');
+            
+            if (${{ env.TEST_COVERAGE }} >= 90) labels.push('high-coverage');
+            if (${{ env.VULNERABILITIES }} > 0) labels.push('security-issue');
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            });
+
+  deployment-protection:
+    name: 🚀 Deployment Protection
+    needs: quality-gate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🐤 Canary Deployment
+        run: |
+          echo "Deploying to 10% of traffic..."
+          # ./scripts/auto-rollback.sh canary 10
+      
+      - name: 📈 Monitor Metrics
+        run: |
+          echo "Monitoring error rates for 5 minutes..."
+          # ./scripts/auto-rollback.sh monitor &
+          # MONITOR_PID=$!
+          # sleep 300
+          # kill $MONITOR_PID || true
+      
+      - name: 🎯 Full Deployment
+        run: |
+          echo "Deploying to 100% of traffic..."
+          # ./deploy.sh production
+
+  auto-fix:
+    name: 🔧 Auto-fix Issues
+    needs: quality-gate
+    if: failure() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: 🔧 Auto-fix Lint
+        run: |
+          npm run lint -- --fix
+          git add -A
+          git diff --staged --quiet || git commit -m "🔧 Auto-fix: lint issues"
+      
+      - name: 🔧 Auto-fix Format
+        run: |
+          npm run format || npx prettier --write .
+          git add -A
+          git diff --staged --quiet || git commit -m "🔧 Auto-fix: formatting"
+      
+      - name: 📤 Push Fixes
+        run: |
+          if [ -n "$(git log origin/${{ github.head_ref }}..${{ github.head_ref }})" ]; then
+            git push origin HEAD:${{ github.head_ref }}
+          fi
