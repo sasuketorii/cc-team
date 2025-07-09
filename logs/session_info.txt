@@ -1,0 +1,15 @@
+CCTeam Session Information (v2.0.0)
+Created: #午後
+Architecture: Executive-Worker Separation
+
+Sessions:
+- ccteam-workers: Worker session (3-way split)
+  - Pane 0: Worker1 (Frontend)
+  - Pane 1: Worker2 (Backend)
+  - Pane 2: Worker3 (Infrastructure/Testing)
+  
+- ccteam-boss: Executive session (2-way split)
+  - Pane 0: Boss (Strategic Manager)
+  - Pane 1: Gemini (AI Strategic Advisor)
+
+Note: Boss manages all workers from the executive session.

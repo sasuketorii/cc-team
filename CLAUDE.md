@@ -1,13 +1,14 @@
-# CCTeam プロジェクト
+# CCTeam プロジェクト v0.0.8
 
 ## 概要
-CCTeamはClaude Code AIエージェントによるBOSS + 3 Workers構成の開発チームです。tmuxを使用して2x2の分割画面で並列開発を行います。
+CCTeamはClaude Code AIエージェントによる統合Boss + 3 Workers構成の開発チームです。tmuxを使用して単一セッションで全エージェントを管理し、効率的な並列開発を実現します。
 
-## エージェント構成
-- **BOSS** (左上): プロジェクト管理・統括
-- **Worker1** (右上): フロントエンド開発
-- **Worker2** (左下): バックエンド開発
-- **Worker3** (右下): テスト・品質保証
+## エージェント構成（統合アーキテクチャ）
+- **BOSS** (統合版): 全体管理・Worker直接制御
+- **Worker1**: フロントエンド開発
+- **Worker2**: バックエンド開発
+- **Worker3**: テスト・品質保証
+- **Gemini** (サポート): 調査・ドキュメント支援
 
 ## セットアップ
 
@@ -29,10 +30,40 @@ tmux attach -t ccteam
 ### エージェント間通信
 ```bash
 # BOSSへの指示:
-./scripts/agent-send.sh worker1 "タスク実行"
+./scripts/agent-send.sh boss "requirementsを読み込んで作業を開始してください"
 
-# Workerからの報告
-./scripts/agent-send.sh boss "作業完了"
+# Workerへの直接指示（通常はBoss経由）:
+./scripts/agent-send.sh worker1 "UIコンポーネントを実装してください"
+```
+
+### tmuxペイン管理
+```bash
+# ペインレイアウトを保存
+./scripts/tmux-pane-manager.sh save ccteam
+
+# ペインを復元
+./scripts/tmux-pane-manager.sh restore ccteam
+
+# 新しいエージェントを追加
+./scripts/tmux-pane-manager.sh add ccteam worker4
+
+# ペイン情報を表示
+./scripts/tmux-pane-manager.sh info ccteam
+```
+
+### Git Worktree並列開発
+```bash
+# 初期設定
+./scripts/worktree-parallel-manual.sh setup
+
+# 自動割り当て
+./scripts/worktree-parallel-manual.sh auto-assign
+
+# 新しいworktreeを作成
+./scripts/worktree-parallel-manual.sh create feature/new-feature worker1
+
+# 状態確認
+./scripts/worktree-parallel-manual.sh status
 ```
 
 ## 開発フロー

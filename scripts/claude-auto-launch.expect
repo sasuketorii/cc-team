@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+
+# Claude自動起動スクリプト
+# --dangerously-skip-permissionsの確認プロンプトを自動で承認
+
+set timeout 30
+
+# Claude CLIを起動
+spawn claude --dangerously-skip-permissions
+
+# プロンプトを待つ
+expect {
+    -re ".*WARNING.*Bypass.*Permissions.*mode.*y/n.*" {
+        send "y\r"
+        exp_continue
+    }
+    -re ".*Do you want to continue.*" {
+        send "y\r"
+        exp_continue
+    }
+    -re ".*Are you sure.*" {
+        send "y\r"
+        exp_continue
+    }
+    eof {
+        puts "Claude CLI exited unexpectedly"
+        exit 1
+    }
+    timeout {
+        # タイムアウトしたら通常のインタラクティブモードに移行
+        interact
+    }
+}
+
+# インタラクティブモードに移行
+interact

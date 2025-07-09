@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# Agent Send Script
+# エージェント間でメッセージを送信するスクリプト
+
+set -e
+
+# 引数チェック
+if [ $# -lt 2 ]; then
+    echo "使用方法: $0 <agent_name> <message>"
+    echo "例: $0 boss \"プロジェクトを開始してください\""
+    echo ""
+    echo "利用可能なエージェント:"
+    echo "  - boss"
+    echo "  - worker1"
+    echo "  - worker2" 
+    echo "  - worker3"
+    echo "  - gemini"
+    exit 1
+fi
+
+AGENT=$1
+MESSAGE=$2
+
+# エージェント名をtmuxペイン番号にマッピング
+case $AGENT in
+    "boss")
+        PANE="ccteam:main.0"
+        LOG_FILE="logs/boss.log"
+        ;;
+    "worker1")
+        PANE="ccteam:main.1"
+        LOG_FILE="logs/worker1.log"
+        ;;
+    "worker2")
+        PANE="ccteam:main.2"
+        LOG_FILE="logs/worker2.log"
+        ;;
+    "worker3")
+        PANE="ccteam:main.3"
+        LOG_FILE="logs/worker3.log"
+        ;;
+    "gemini")
+        PANE="ccteam-boss:main.1"
+        LOG_FILE="logs/gemini.log"
+        ;;
+    *)
+        echo "❌ 不明なエージェント: $AGENT"
+        echo "利用可能: boss, worker1, worker2, worker3, gemini"
+        exit 1
+        ;;
+esac
+
+# tmuxセッションの存在確認（Geminiの場合は別セッション）
+if [[ "$AGENT" == "gemini" ]]; then
+    if ! tmux has-session -t ccteam-boss 2>/dev/null; then
+        echo "❌ ccteam-bossセッションが見つかりません"
+        echo "先に ./scripts/setup.sh を実行してください"
+        exit 1
+    fi
+else
+    if ! tmux has-session -t ccteam 2>/dev/null; then
+        echo "❌ ccteamセッションが見つかりません"
+        echo "先に ./scripts/setup.sh を実行してください"
+        exit 1
+    fi
+fi
+
+# タイムスタンプ
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+
+# ログに記録
+echo "[$TIMESTAMP] 送信: $MESSAGE" >> $LOG_FILE
+echo "[$TIMESTAMP] $AGENT <- $MESSAGE" >> logs/system.log
+
+# Claude Codeのプロンプトをクリアしてメッセージを送信
+echo "📤 $AGENT にメッセージを送信しています..."
+
+# Ctrl+C でプロンプトをクリア
+tmux send-keys -t $PANE C-c
+
+# 少し待機
+sleep 0.5
+
+# メッセージを送信
+tmux send-keys -t $PANE "$MESSAGE" 
+
+# Enterキーを送信
+tmux send-keys -t $PANE Enter
+
+echo "✅ メッセージを送信しました"
+
+# 送信履歴を保存
+echo "[$TIMESTAMP] $AGENT: $MESSAGE" >> logs/communication.log

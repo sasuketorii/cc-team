@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# CCTeam 統合セットアップスクリプト v0.0.8
+# Boss一元化アーキテクチャ実装
+# 参考: Claude-Code-Communication (https://github.com/Akira-Papa/Claude-Code-Communication)
+
+set -euo pipefail
+
+# カラー定義
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🚀 CCTeam 統合セットアップ開始 (v0.0.8)${NC}"
+echo ""
+
+# ログディレクトリの作成
+echo "ログディレクトリを作成中..."
+mkdir -p logs memory reports tmp
+
+# 既存セッションのクリーンアップ
+echo "既存のtmuxセッションをクリーンアップ中..."
+tmux kill-session -t ccteam 2>/dev/null || true
+tmux kill-session -t ccteam-boss 2>/dev/null || true
+tmux kill-session -t ccteam-support 2>/dev/null || true
+
+# メインセッション作成（統合Boss + Workers）
+echo -e "${GREEN}統合メインセッション 'ccteam' を作成中...${NC}"
+tmux new-session -d -s ccteam -n main
+
+# 2x2レイアウト作成
+echo "2x2レイアウトを構成中..."
+# 右に分割
+tmux split-window -h -t ccteam:main
+# 左ペインを上下に分割
+tmux split-window -v -t ccteam:main.0
+# 右ペインを上下に分割（正しいペイン番号を使用）
+tmux split-window -v -t ccteam:main.2
+
+# ペインに名前を設定（tmux 3.0以降の機能）
+if tmux -V | grep -qE "(^tmux 3\.|^tmux [4-9]\.)"; then
+    echo "ペインに名前を設定中..."
+    tmux select-pane -t ccteam:main.0 -T "Boss (Unified)"
+    tmux select-pane -t ccteam:main.1 -T "Worker1"
+    tmux select-pane -t ccteam:main.2 -T "Worker2"
+    tmux select-pane -t ccteam:main.3 -T "Worker3"
+fi
+
+# レイアウトを均等に調整
+tmux select-layout -t ccteam:main tiled
+
+# Boss+Geminiセッション作成（2分割）
+echo -e "${GREEN}Boss+Geminiセッション 'ccteam-boss' を作成中...${NC}"
+tmux new-session -d -s ccteam-boss -n main
+# 左右に分割（Boss | Gemini）
+tmux split-window -h -t ccteam-boss:main
+
+# ペインに名前を設定
+if tmux -V | grep -qE "(^tmux 3\.|^tmux [4-9]\.)"; then
+    tmux select-pane -t ccteam-boss:main.0 -T "Boss (Command)"
+    tmux select-pane -t ccteam-boss:main.1 -T "Gemini (Advisor)"
+fi
+
+# ログファイルの初期化
+echo "ログファイルを初期化中..."
+touch logs/boss.log
+touch logs/worker1.log
+touch logs/worker2.log
+touch logs/worker3.log
+touch logs/gemini.log
+touch logs/system.log
+touch logs/communication.log
+
+# セッション情報を記録
+cat > logs/session_info.txt << EOF
+CCTeam Session Information (v0.0.8)
+Created: $(date)
+Architecture: Unified Boss with Advisor
+
+Sessions:
+- ccteam: Main session (Boss + 3 Workers)
+  - Pane 0: Boss (Unified)
+  - Pane 1: Worker1
+  - Pane 2: Worker2
+  - Pane 3: Worker3
+- ccteam-boss: Boss command session (Boss + Gemini)
+  - Pane 0: Boss (Command Center)
+  - Pane 1: Gemini (Strategic Advisor)
+
+Note: Boss in both sessions are synchronized. Gemini acts as strategic advisor to Boss.
+EOF
+
+# AIモデル設定の実行
+if [[ -f "scripts/setup-models-simple.sh" ]]; then
+    echo ""
+    echo -e "${YELLOW}AIモデルの設定を開始します...${NC}"
+    ./scripts/setup-models-simple.sh
+fi
+
+echo ""
+echo -e "${GREEN}✅ 統合セットアップが完了しました！${NC}"
+echo ""
+echo "📋 セッション構成:"
+echo "  - ccteam (メイン): Boss + Worker1-3"
+echo "  - ccteam-boss: Boss + Gemini（相談役）"
+echo ""
+echo "🔧 次のステップ:"
+echo "  1. tmuxセッションに接続: tmux attach -t ccteam"
+echo "  2. CCTeamを起動: ./scripts/launch-ccteam.sh"
+echo ""
+echo -e "${BLUE}💡 ヒント: Bossは両方のセッションで同期しています。Geminiは相談役として機能します${NC}"
