@@ -45,9 +45,11 @@ echo ""
 # デフォルトは全自動実行モード
 if [[ -z "$APPROVAL_MODE" ]] || [[ "$APPROVAL_MODE" == "1" ]]; then
     APPROVAL_MODE="auto"
+    LAUNCH_SCRIPT="./scripts/claude-auto-launch.expect"
     echo -e "${YELLOW}⚡ 全自動実行モードを選択しました${NC}"
 else
     APPROVAL_MODE="user"
+    LAUNCH_SCRIPT="./scripts/claude-safe-launch.expect"
     echo -e "${GREEN}✅ ユーザー承認モードを選択しました${NC}"
 fi
 
@@ -83,7 +85,7 @@ echo ""
 echo "🎯 幹部陣を起こしています..."
 
 # Boss（幹部セッション）の起動
-tmux send-keys -t ccteam-boss:main.0 "./scripts/claude-auto-launch.expect" C-m
+tmux send-keys -t ccteam-boss:main.0 "$LAUNCH_SCRIPT" C-m
 sleep 5  # 起動待機時間を延長
 echo "  💼 BOSSが目覚めました！"
 
@@ -96,17 +98,17 @@ echo ""
 echo "👷 ワーカーたちを起こしています..."
 
 # Worker1 (ペイン0)
-tmux send-keys -t ccteam-workers:main.0 "./scripts/claude-auto-launch.expect" C-m
+tmux send-keys -t ccteam-workers:main.0 "$LAUNCH_SCRIPT" C-m
 sleep 5  # 起動待機時間を延長
 echo "  🎨 Worker1（フロントエンド）が起きました！"
 
 # Worker2 (ペイン1)
-tmux send-keys -t ccteam-workers:main.1 "./scripts/claude-auto-launch.expect" C-m
+tmux send-keys -t ccteam-workers:main.1 "$LAUNCH_SCRIPT" C-m
 sleep 5  # 起動待機時間を延長
 echo "  ⚙️  Worker2（バックエンド）が起きました！"
 
 # Worker3 (ペイン2)
-tmux send-keys -t ccteam-workers:main.2 "./scripts/claude-auto-launch.expect" C-m
+tmux send-keys -t ccteam-workers:main.2 "$LAUNCH_SCRIPT" C-m
 sleep 5  # 起動待機時間を延長
 echo "  🔧 Worker3（インフラ/テスト）が起きました！"
 

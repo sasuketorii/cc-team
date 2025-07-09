@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+
+# Claude通常起動スクリプト（権限確認あり）
+# ユーザー承認モード用
+
+set timeout 30
+
+# Claude CLIを起動（--dangerously-skip-permissionsなし）
+spawn claude
+
+# インタラクティブモードに移行
+interact
