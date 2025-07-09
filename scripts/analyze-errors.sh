@@ -13,6 +13,9 @@ NC='\033[0m'
 echo "🔍 CCTeam エラー分析を実行しています..."
 echo ""
 
+# エラーループ検出機能の有効化
+ENABLE_LOOP_DETECTION=true
+
 # オプション解析
 TIME_RANGE="all"
 if [ "$1" == "--last-hour" ]; then

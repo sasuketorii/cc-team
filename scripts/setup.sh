@@ -76,44 +76,35 @@ if tmux -V | grep -q "3\.[1-9]"; then
     tmux select-pane -t ccteam-boss:main.1 -T "GEMINI"
 fi
 
-# 各ペインでプロンプトカラーを設定
-echo "🎨 プロンプトカラーを設定しています..."
-
-# メインセッション
-# BOSS (赤)
-tmux send-keys -t ccteam:main.0 "export PS1='${RED}[BOSS]${NC} \w $ '" C-m
-tmux send-keys -t ccteam:main.0 "clear" C-m
-
-# Worker1 (青)
-tmux send-keys -t ccteam:main.1 "export PS1='${BLUE}[Worker1]${NC} \w $ '" C-m
-tmux send-keys -t ccteam:main.1 "clear" C-m
-
-# Worker2 (緑)
-tmux send-keys -t ccteam:main.2 "export PS1='${GREEN}[Worker2]${NC} \w $ '" C-m
-tmux send-keys -t ccteam:main.2 "clear" C-m
-
-# Worker3 (黄)
-tmux send-keys -t ccteam:main.3 "export PS1='${YELLOW}[Worker3]${NC} \w $ '" C-m
-tmux send-keys -t ccteam:main.3 "clear" C-m
-
-# BOSS+Geminiセッション
-# BOSS (赤)
-tmux send-keys -t ccteam-boss:main.0 "export PS1='${RED}[BOSS]${NC} \w $ '" C-m
-tmux send-keys -t ccteam-boss:main.0 "clear" C-m
-
-# GEMINI (紫)
-tmux send-keys -t ccteam-boss:main.1 "export PS1='${PURPLE}[GEMINI]${NC} \w $ '" C-m
-tmux send-keys -t ccteam-boss:main.1 "clear" C-m
-
-# 作業ディレクトリを設定
+# 各ペインの作業ディレクトリを設定（コマンドは送信せず、ペインの設定として保存）
+echo "📁 作業ディレクトリを設定しています..."
 WORK_DIR=$(pwd)
+
+# tmux 3.1以降はstart-directoryオプションが使える
+if tmux -V | grep -q "3\.[1-9]"; then
+    # メインセッション
+    for pane in 0 1 2 3; do
+        tmux set-option -t ccteam:main.$pane remain-on-exit off
+        tmux send-keys -t ccteam:main.$pane "cd $WORK_DIR && exec $SHELL" C-m
+    done
+    # BOSS+Geminiセッション
+    for pane in 0 1; do
+        tmux set-option -t ccteam-boss:main.$pane remain-on-exit off
+        tmux send-keys -t ccteam-boss:main.$pane "cd $WORK_DIR && exec $SHELL" C-m
+    done
+fi
+
+# 少し待機してシェルを起動
+sleep 1
+
+# シェルが起動したら即座にクリア
 # メインセッション
 for pane in 0 1 2 3; do
-    tmux send-keys -t ccteam:main.$pane "cd $WORK_DIR" C-m
+    tmux send-keys -t ccteam:main.$pane "clear" C-m
 done
-# BOSS+Geminiセッション
+# BOSS+Geminiセッション  
 for pane in 0 1; do
-    tmux send-keys -t ccteam-boss:main.$pane "cd $WORK_DIR" C-m
+    tmux send-keys -t ccteam-boss:main.$pane "clear" C-m
 done
 
 # ログファイルを初期化

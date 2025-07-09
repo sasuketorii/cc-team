@@ -51,6 +51,12 @@ CCTeam/
   requirements/     # プロジェクト要件
   logs/            # ログファイル
   worktrees/       # Git worktree並列開発
+  tests/           # テストスクリプト・履歴
+    history/       # テスト実行履歴のアーカイブ
+  memory/          # AIメモリシステム（SQLite）
+  reports/         # 各種レポート出力
+  investigation_reports/  # 調査報告書（日時付き）
+  .claude/         # Claude Code Actions設定
 ```
 
 ## 運用管理
@@ -82,6 +88,29 @@ CCTeam/
 - 単体テスト: 必須
 - 統合テスト: 自動化
 
+#### テストスクリプト
+```bash
+# クイックヘルスチェック
+./tests/quick_health_check.sh
+
+# 詳細システムチェック
+./tests/system_health_check.sh
+
+# 統合テスト
+./tests/integration_test.sh
+
+# テスト後のクリーンアップ
+./tests/cleanup_test_files.sh
+
+# テスト結果のアーカイブ
+./tests/test_log_archiver.sh
+```
+
+#### テスト履歴
+- `tests/history/`: テスト実行結果のアーカイブ
+- 各実行ごとにタイムスタンプ付きディレクトリを作成
+- レポート、ログ、サマリー情報を保存
+
 ## プロジェクト設定
 
 ### 依存関係
@@ -106,6 +135,23 @@ npm run lint
 # 開発サーバー
 npm run dev
 ```
+
+## ドキュメント管理
+
+### 調査報告書の作成
+```bash
+# 新規調査報告書の作成（日本時間でファイル名生成）
+./scripts/create_investigation_report.sh "タイトル" "説明"
+
+# 例：
+./scripts/create_investigation_report.sh "エラーループ改善" "エラーループ検出システムの改善調査"
+# → investigation_reports/20250109_193000_エラーループ改善調査報告.md
+```
+
+### ドキュメント構成
+- `investigation_reports/`: 調査報告書（YYYYMMDD_HHMMSS_タイトル調査報告.md）
+- `reports/`: 自動生成レポート
+- `tests/test_scripts.md`: テストスクリプトのドキュメント
 
 ## トラブルシューティング
 

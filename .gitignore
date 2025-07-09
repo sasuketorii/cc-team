@@ -1,16 +1,26 @@
 # Dependencies
 node_modules/
 venv/
+env/
+ENV/
+.venv/
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
 
 # Logs
 logs/*.log
+logs/*.gz
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Test artifacts
 test-tmp-*
 test-results-*.log
+.pytest_cache/
 
 # IDE
 .vscode/
@@ -18,10 +28,13 @@ test-results-*.log
 *.swp
 *.swo
 .DS_Store
+*.sublime-project
+*.sublime-workspace
 
 # Environment
 .env
 .env.local
+.env.*.local
 
 # Claude settings (local)
 .claude/settings.local.json
@@ -29,17 +42,56 @@ test-results-*.log
 # Temporary files
 tmp/
 *.tmp
+*.temp
 *.backup
+*.bak
+*~
 
 # Build outputs
 dist/
 build/
+out/
+target/
 
 # Coverage
 coverage/
 .coverage
+*.lcov
+.nyc_output
 
 # Reports (keep directory but not contents)
 reports/*
-\!reports/.gitkeep
-EOF < /dev/null
+!reports/.gitkeep
+
+# Memory Database
+memory/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# OS files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.icloud
+
+# Initialization markers
+.initialized
+
+# Private keys
+*.pem
+*.key
+*.crt
+
+# Cache
+.cache/
+.parcel-cache/
+
+# CCTeam specific worktrees
+worktrees/*
+!worktrees/.gitkeep

@@ -1,0 +1,152 @@
+{
+  "actions": [
+    {
+      "id": "ccteam-launch",
+      "name": "CCTeam Launch",
+      "description": "Launch CCTeam AI development environment with 4 agents",
+      "command": "./scripts/launch-ccteam.sh",
+      "icon": "🚀",
+      "workingDirectory": "."
+    },
+    {
+      "id": "ccteam-status",
+      "name": "Check Status",
+      "description": "Check CCTeam agents status and progress",
+      "command": "./scripts/project-status.sh",
+      "icon": "📊",
+      "workingDirectory": "."
+    },
+    {
+      "id": "ccteam-analyze",
+      "name": "Analyze Code",
+      "description": "Run Claude SDK code analysis on selected file",
+      "command": "python3 scripts/claude_sdk_wrapper.py analyze",
+      "icon": "🔍",
+      "workingDirectory": ".",
+      "parameters": [
+        {
+          "name": "file",
+          "type": "file",
+          "required": true,
+          "description": "File to analyze"
+        }
+      ]
+    },
+    {
+      "id": "ccteam-test-generate",
+      "name": "Generate Tests",
+      "description": "Generate test files for selected code",
+      "command": "python3 scripts/claude_sdk_wrapper.py test",
+      "icon": "🧪",
+      "workingDirectory": ".",
+      "parameters": [
+        {
+          "name": "file",
+          "type": "file",
+          "required": true,
+          "description": "File to generate tests for"
+        }
+      ]
+    },
+    {
+      "id": "ccteam-send-boss",
+      "name": "Send to BOSS",
+      "description": "Send message to BOSS agent",
+      "command": "./scripts/agent-send.sh boss",
+      "icon": "👔",
+      "workingDirectory": ".",
+      "parameters": [
+        {
+          "name": "message",
+          "type": "string",
+          "required": true,
+          "description": "Message to send"
+        }
+      ]
+    },
+    {
+      "id": "ccteam-attach",
+      "name": "Attach to Session",
+      "description": "Attach to running tmux session",
+      "command": "tmux attach -t ccteam",
+      "icon": "🖥️",
+      "workingDirectory": "."
+    },
+    {
+      "id": "ccteam-memory-save",
+      "name": "Save Memory",
+      "description": "Save current context to memory database",
+      "command": "python3 scripts/memory_manager.py save",
+      "icon": "💾",
+      "workingDirectory": "."
+    },
+    {
+      "id": "ccteam-memory-load",
+      "name": "Load Memory",
+      "description": "Load recent context from memory",
+      "command": "python3 scripts/memory_manager.py load",
+      "icon": "📂",
+      "workingDirectory": "."
+    },
+    {
+      "id": "ccteam-memory-search",
+      "name": "Search Memory",
+      "description": "Search through saved memories",
+      "command": "python3 scripts/memory_manager.py search",
+      "icon": "🔎",
+      "workingDirectory": ".",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        }
+      ]
+    },
+    {
+      "id": "ccteam-version",
+      "name": "Version Manager",
+      "description": "Manage CCTeam versions",
+      "command": "./scripts/version-manager.sh",
+      "icon": "🏷️",
+      "workingDirectory": ".",
+      "parameters": [
+        {
+          "name": "action",
+          "type": "select",
+          "required": true,
+          "options": ["current", "bump", "minor", "major", "history"],
+          "description": "Version action"
+        }
+      ]
+    }
+  ],
+  "shortcuts": [
+    {
+      "key": "cmd+shift+l",
+      "action": "ccteam-launch",
+      "description": "Launch CCTeam"
+    },
+    {
+      "key": "cmd+shift+s",
+      "action": "ccteam-status",
+      "description": "Check status"
+    },
+    {
+      "key": "cmd+shift+a",
+      "action": "ccteam-attach",
+      "description": "Attach to session"
+    },
+    {
+      "key": "cmd+shift+m",
+      "action": "ccteam-memory-save",
+      "description": "Save memory"
+    }
+  ],
+  "settings": {
+    "defaultWorkingDirectory": ".",
+    "showNotifications": true,
+    "notificationDuration": 3000
+  }
+}
