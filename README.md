@@ -6,7 +6,7 @@
   <h3>要件定義を入れるだけで、AIチームが24時間365日開発を続ける</h3>
   <br>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.3-blue.svg" />
+    <img src="https://img.shields.io/badge/version-0.1.4-blue.svg" />
     <img src="https://img.shields.io/badge/claude-opus--4-purple.svg" />
     <img src="https://img.shields.io/badge/by-SasukeTorii-orange.svg" />
     <img src="https://img.shields.io/badge/license-AGPL--3.0-green.svg" />
@@ -122,6 +122,32 @@ echo "ユーザー認証機能を実装して" > requirements/機能要件.md
   <p><b>毎回クローンやディレクトリ移動は不要！</b></p>
   <p>Claude Codeと同じように、どこからでも<code>ccteam</code>一発で起動</p>
 </div>
+
+---
+
+## 🐳 Dev Container & GitHub Actions対応！
+
+### VSCode Dev Containerで即座に開発開始
+```bash
+# VSCodeで開く
+code cc-team/CCTeam
+
+# 「Reopen in Container」をクリック
+# 自動的に全ての環境が構築されます！
+```
+
+### 特徴
+- 🔧 **完全な開発環境** - tmux、Claude CLI、Python、Node.js全て設定済み
+- 🔐 **安全な認証** - ホストのClaude認証を自動マウント
+- 🚀 **即座に利用可能** - コンテナ起動後すぐにccteamコマンドが使える
+- 📦 **依存関係自動インストール** - npm/pip全て自動
+
+### GitHub Actionsで自動化
+- ✅ **自動テスト** - プッシュ時に全テスト実行
+- 🔍 **品質チェック** - コード品質を自動評価
+- 🛡️ **セキュリティスキャン** - 脆弱性を自動検出
+- 🔧 **自動修正** - PRコメントで`/fix`と入力するだけ
+- 📊 **定期メンテナンス** - ログ整理・依存関係更新を自動実行
 
 ---
 

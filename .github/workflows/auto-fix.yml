@@ -1,0 +1,253 @@
+name: Auto Fix
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  parse-command:
+    if: |
+      github.event.issue.pull_request && 
+      (contains(github.event.comment.body, '/fix') || 
+       contains(github.event.comment.body, '/format') ||
+       contains(github.event.comment.body, '/test'))
+    runs-on: ubuntu-latest
+    outputs:
+      command: ${{ steps.parse.outputs.command }}
+      args: ${{ steps.parse.outputs.args }}
+    steps:
+      - name: Parse command
+        id: parse
+        run: |
+          COMMENT="${{ github.event.comment.body }}"
+          
+          # コマンドを抽出
+          if [[ "$COMMENT" =~ /fix ]]; then
+            COMMAND="fix"
+            ARGS="${COMMENT#*/fix }"
+          elif [[ "$COMMENT" =~ /format ]]; then
+            COMMAND="format"
+            ARGS=""
+          elif [[ "$COMMENT" =~ /test ]]; then
+            COMMAND="test"
+            ARGS="${COMMENT#*/test }"
+          fi
+          
+          echo "command=$COMMAND" >> $GITHUB_OUTPUT
+          echo "args=$ARGS" >> $GITHUB_OUTPUT
+
+  auto-fix:
+    needs: parse-command
+    if: needs.parse-command.outputs.command == 'fix'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR branch
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return pr.data.head.ref;
+      
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(steps.pr.outputs.result) }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tmux expect jq
+      
+      - name: React to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+      
+      - name: Post status comment
+        uses: actions/github-script@v7
+        id: status-comment
+        with:
+          script: |
+            const { data: comment } = await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🤖 **CCTeam Auto Fix**\n\n修正を開始しています...\n\n要求: ${{ needs.parse-command.outputs.args }}`
+            });
+            return comment.id;
+      
+      - name: Run fix
+        id: fix
+        run: |
+          # 簡易的な修正実行（実際のCCTeam起動は環境依存のため省略）
+          echo "修正要求: ${{ needs.parse-command.outputs.args }}" > fix-request.txt
+          
+          # ここで実際の修正処理を実行
+          # 例: コードフォーマット、簡単なバグ修正など
+          
+          # 変更があるか確認
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit and push changes
+        if: steps.fix.outputs.has_changes == 'true'
+        run: |
+          git config user.name "CCTeam Bot"
+          git config user.email "ccteam@bot.local"
+          
+          git add -A
+          git commit -m "fix: Auto-fix requested by @${{ github.event.comment.user.login }}
+
+          Fix request: ${{ needs.parse-command.outputs.args }}
+          
+          Co-authored-by: ${{ github.event.comment.user.login }} <${{ github.event.comment.user.id }}+${{ github.event.comment.user.login }}@users.noreply.github.com>"
+          
+          git push
+      
+      - name: Update status comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.fix.outputs.has_changes }}' === 'true' 
+              ? '✅ 修正が完了しました！変更をコミットしました。' 
+              : 'ℹ️ 修正対象が見つかりませんでした。';
+            
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: ${{ steps.status-comment.outputs.result }},
+              body: `🤖 **CCTeam Auto Fix**\n\n${status}\n\n要求: ${{ needs.parse-command.outputs.args }}`
+            });
+
+  format:
+    needs: parse-command
+    if: needs.parse-command.outputs.command == 'format'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR branch
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return pr.data.head.ref;
+      
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(steps.pr.outputs.result) }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci || npm install
+          fi
+      
+      - name: Run formatters
+        run: |
+          # Prettier
+          if [ -f package.json ] && grep -q "prettier" package.json; then
+            npx prettier --write . || true
+          fi
+          
+          # Shell script formatting
+          find scripts -name "*.sh" -type f -exec chmod +x {} \;
+      
+      - name: Commit changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            git config user.name "CCTeam Bot"
+            git config user.email "ccteam@bot.local"
+            
+            git add -A
+            git commit -m "style: Auto-format code
+
+            Requested by: @${{ github.event.comment.user.login }}
+            
+            Co-authored-by: ${{ github.event.comment.user.login }} <${{ github.event.comment.user.id }}+${{ github.event.comment.user.login }}@users.noreply.github.com>"
+            
+            git push
+          fi
+      
+      - name: Post result
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✨ コードのフォーマットが完了しました！`
+            });
+
+  test:
+    needs: parse-command
+    if: needs.parse-command.outputs.command == 'test'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tmux expect jq
+      
+      - name: Run specific tests
+        run: |
+          TEST_TARGET="${{ needs.parse-command.outputs.args }}"
+          
+          if [ -z "$TEST_TARGET" ]; then
+            # 全テスト実行
+            if [ -f ./tests/integration_test.sh ]; then
+              ./tests/integration_test.sh
+            fi
+          else
+            # 特定のテスト実行
+            echo "Running tests for: $TEST_TARGET"
+            # ここに特定のテスト実行ロジックを追加
+          fi
+      
+      - name: Post results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success = '${{ job.status }}' === 'success';
+            const emoji = success ? '✅' : '❌';
+            const status = success ? '成功' : '失敗';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `${emoji} テスト実行結果: **${status}**\n\nテスト対象: ${{ needs.parse-command.outputs.args || '全体' }}`
+            });

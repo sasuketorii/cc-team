@@ -1,0 +1,286 @@
+name: Maintenance
+
+on:
+  schedule:
+    - cron: '0 17 * * *' # 毎日午前2時（JST）
+  workflow_dispatch:
+    inputs:
+      cleanup_logs:
+        description: 'Clean up old logs'
+        required: false
+        default: 'true'
+        type: boolean
+      update_deps:
+        description: 'Update dependencies'
+        required: false
+        default: 'true'
+        type: boolean
+      generate_report:
+        description: 'Generate maintenance report'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      
+      - name: Clean up old logs
+        if: github.event.inputs.cleanup_logs != 'false'
+        run: |
+          echo "🧹 ログファイルのクリーンアップを開始..."
+          
+          # log_rotation.shが存在する場合は実行
+          if [ -f ./scripts/log_rotation.sh ]; then
+            ./scripts/log_rotation.sh
+          else
+            # 手動でログローテーション
+            find logs -name "*.log" -type f -mtime +30 -delete 2>/dev/null || true
+            find logs -name "*.log" -type f -size +10M -exec gzip {} \; 2>/dev/null || true
+          fi
+          
+          # 古いテストアーティファクトを削除
+          if [ -f ./scripts/cleanup_obsolete_files.sh ]; then
+            ./scripts/cleanup_obsolete_files.sh
+          else
+            find tests/history -type d -mtime +30 -exec rm -rf {} + 2>/dev/null || true
+          fi
+          
+          echo "✅ クリーンアップ完了"
+      
+      - name: Check disk usage
+        run: |
+          echo "💾 ディスク使用状況:"
+          du -sh ./* | sort -hr | head -20
+      
+      - name: Create cleanup report
+        run: |
+          cat > cleanup-report.md << EOF
+          # 🧹 Cleanup Report
+          
+          Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          
+          ## Actions Taken
+          - Removed log files older than 30 days
+          - Compressed large log files (>10MB)
+          - Cleaned up old test artifacts
+          
+          ## Current Status
+          \`\`\`
+          $(du -sh logs 2>/dev/null || echo "logs directory not found")
+          $(du -sh tests/history 2>/dev/null || echo "tests/history directory not found")
+          \`\`\`
+          EOF
+      
+      - name: Upload cleanup report
+        uses: actions/upload-artifact@v3
+        with:
+          name: cleanup-report
+          path: cleanup-report.md
+
+  update-dependencies:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.update_deps != 'false'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Update Node dependencies
+        id: update-node
+        run: |
+          if [ -f package.json ]; then
+            echo "📦 Node.js依存関係を更新中..."
+            
+            # package-lock.jsonのバックアップ
+            cp package-lock.json package-lock.json.bak 2>/dev/null || true
+            
+            # セキュリティアップデートのみ
+            npm audit fix || true
+            
+            # 更新があったか確認
+            if ! diff -q package-lock.json package-lock.json.bak >/dev/null 2>&1; then
+              echo "has_updates=true" >> $GITHUB_OUTPUT
+              echo "✅ Node.js依存関係を更新しました"
+            else
+              echo "has_updates=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ Node.js依存関係の更新はありません"
+            fi
+            
+            rm -f package-lock.json.bak
+          fi
+      
+      - name: Update Python dependencies
+        id: update-python
+        run: |
+          if [ -f requirements.txt ]; then
+            echo "🐍 Python依存関係を更新中..."
+            
+            # requirements.txtのバックアップ
+            cp requirements.txt requirements.txt.bak
+            
+            # pip-toolsを使用して更新（インストールされている場合）
+            pip install pip-tools || true
+            
+            # 現在のバージョンを記録
+            pip freeze > current-versions.txt
+            
+            # セキュリティアップデートを確認
+            pip list --outdated --format=json > outdated.json || echo "[]" > outdated.json
+            
+            # 更新が必要なパッケージがあるか確認
+            if [ -s outdated.json ] && [ "$(jq length outdated.json)" -gt 0 ]; then
+              echo "has_updates=true" >> $GITHUB_OUTPUT
+              echo "✅ Python依存関係の更新が必要です"
+            else
+              echo "has_updates=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ Python依存関係の更新はありません"
+            fi
+            
+            rm -f requirements.txt.bak current-versions.txt outdated.json
+          fi
+      
+      - name: Create update report
+        run: |
+          cat > dependency-report.md << EOF
+          # 📦 Dependency Update Report
+          
+          Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          
+          ## Node.js Dependencies
+          EOF
+          
+          if [ -f package.json ]; then
+            echo "### Security Vulnerabilities" >> dependency-report.md
+            npm audit --json | jq -r '.vulnerabilities | to_entries[] | "- \(.key): \(.value.severity)"' >> dependency-report.md 2>/dev/null || echo "No vulnerabilities found" >> dependency-report.md
+          else
+            echo "No package.json found" >> dependency-report.md
+          fi
+          
+          echo "" >> dependency-report.md
+          echo "## Python Dependencies" >> dependency-report.md
+          
+          if [ -f requirements.txt ]; then
+            echo "### Outdated Packages" >> dependency-report.md
+            pip list --outdated 2>/dev/null | tail -n +3 >> dependency-report.md || echo "All packages are up to date" >> dependency-report.md
+          else
+            echo "No requirements.txt found" >> dependency-report.md
+          fi
+      
+      - name: Create PR if updates needed
+        if: steps.update-node.outputs.has_updates == 'true' || steps.update-python.outputs.has_updates == 'true'
+        run: |
+          git config user.name "CCTeam Bot"
+          git config user.email "ccteam@bot.local"
+          
+          BRANCH="maintenance/deps-$(date +%Y%m%d)"
+          git checkout -b $BRANCH
+          
+          git add -A
+          git commit -m "chore: Update dependencies - $(date +%Y/%m/%d)
+
+          - Security updates for npm packages
+          - Dependency maintenance
+          
+          [skip ci]"
+          
+          git push origin $BRANCH
+          
+          gh pr create \
+            --title "🔧 定期メンテナンス: 依存関係の更新 - $(date +%Y/%m/%d)" \
+            --body-file dependency-report.md \
+            --base main \
+            --label "dependencies,maintenance"
+
+  generate-report:
+    runs-on: ubuntu-latest
+    needs: [cleanup, update-dependencies]
+    if: always() && github.event.inputs.generate_report != 'false'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      
+      - name: Generate comprehensive report
+        run: |
+          cat > maintenance-report.md << EOF
+          # 🔧 CCTeam Maintenance Report
+          
+          **Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+          **Triggered by**: ${{ github.event_name }}
+          
+          ## Summary
+          
+          | Task | Status |
+          |------|--------|
+          | Cleanup | ${{ needs.cleanup.result }} |
+          | Dependency Update | ${{ needs.update-dependencies.result }} |
+          
+          ## Details
+          
+          EOF
+          
+          # クリーンアップレポートを追加
+          if [ -f artifacts/cleanup-report/cleanup-report.md ]; then
+            echo "### Cleanup Details" >> maintenance-report.md
+            cat artifacts/cleanup-report/cleanup-report.md >> maintenance-report.md
+            echo "" >> maintenance-report.md
+          fi
+          
+          # その他の情報
+          echo "### Repository Statistics" >> maintenance-report.md
+          echo "\`\`\`" >> maintenance-report.md
+          echo "Total size: $(du -sh . | cut -f1)" >> maintenance-report.md
+          echo "File count: $(find . -type f | wc -l)" >> maintenance-report.md
+          echo "Directory count: $(find . -type d | wc -l)" >> maintenance-report.md
+          echo "\`\`\`" >> maintenance-report.md
+          
+          echo "" >> maintenance-report.md
+          echo "---" >> maintenance-report.md
+          echo "*Generated by CCTeam Maintenance Workflow*" >> maintenance-report.md
+      
+      - name: Upload final report
+        uses: actions/upload-artifact@v3
+        with:
+          name: maintenance-report
+          path: maintenance-report.md
+          retention-days: 90
+      
+      - name: Create issue if problems found
+        if: needs.cleanup.result == 'failure' || needs.update-dependencies.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const date = new Date().toISOString().split('T')[0];
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Maintenance Issues - ${date}`,
+              body: `The following maintenance tasks failed:
+              
+              - Cleanup: ${{ needs.cleanup.result }}
+              - Dependency Update: ${{ needs.update-dependencies.result }}
+              
+              Please check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
+              labels: ['maintenance', 'automated']
+            });

@@ -1,4 +1,4 @@
-# CCTeam プロジェクト v0.1.1
+# CCTeam プロジェクト v0.1.4
 
 ## 概要
 CCTeamはClaude Code AIエージェントによる統合Boss + 3 Workers構成の開発チームです。tmuxを使用して単一セッションで全エージェントを管理し、効率的な並列開発を実現します。
