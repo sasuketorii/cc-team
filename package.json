@@ -1,6 +1,6 @@
 {
   "name": "ccteam",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Claude Code Team - AI-Powered Development Environment",
   "main": "index.js",
   "scripts": {

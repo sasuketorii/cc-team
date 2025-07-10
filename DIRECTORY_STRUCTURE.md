@@ -1,6 +1,6 @@
 # 📁 CCTeam ディレクトリ構造ガイド
 
-最終更新: 2025年1月9日 (v0.0.7)
+最終更新: 2025年1月10日 (v0.1.1)
 
 ## 🏗️ ディレクトリ構成
 
@@ -37,7 +37,7 @@ CCTeam/
 │
 ├── 📂 plans/                # 計画書
 │   ├── README.md
-│   ├── CCTeam超最適化計画v0.0.6.md
+│   ├── CCTeam包括的修正プランv0.0.8.md # 実装済み（v0.1.0）
 │   └── archive/            # 実施済み計画
 │
 ├── 📂 reports/              # 自動生成レポート
@@ -53,7 +53,7 @@ CCTeam/
 ├── 📂 scripts/              # 実行スクリプト
 │   ├── README.md           # スクリプト詳細ガイド
 │   ├── setup.sh           # 環境構築
-│   ├── launch-ccteam.sh  # CCTeam起動
+│   ├── launch-ccteam-v3.sh  # CCTeam起動（手動認証版）
 │   └── ... (多数のユーティリティ)
 │
 ├── 📂 shared-docs/          # 共有ドキュメント

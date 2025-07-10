@@ -1,4 +1,4 @@
-# 📚 CCTeam Scripts 完全ガイド v0.0.6
+# 📚 CCTeam Scripts 完全ガイド v0.1.1
 
 ## 🏗️ スクリプトアーキテクチャ
 
@@ -31,10 +31,14 @@ source ~/.bashrc          # または ~/.zshrc
 
 ### 2. 基本的な使い方
 ```bash
-ccteam                    # CCTeamを起動（どこからでも！）
+ccteam                    # CCTeamを起動（v3: 手動認証版）
+ccguide                   # ガイド付き起動（初心者向け）
+ccmon                     # リアルタイム状態監視
+ccprompt                  # プロンプトテンプレート表示
 cca                       # 実行中のセッションに接続
 ccs                       # プロジェクト状況を確認
 ccsend boss "タスク開始"   # BOSSに指示を送信
+cckill                    # tmuxセッション終了
 ```
 
 ---
@@ -56,8 +60,9 @@ ccsend boss "タスク開始"   # BOSSに指示を送信
 - `ccteam-attach` → tmux attach -t ccteam
 
 **関連ファイル**:
-- 出力: `/usr/local/bin/ccteam*`
+- 出力: `/usr/local/bin/ccteam*` または `~/.local/bin/ccteam*`
 - 設定: `~/.ccteam-commands`
+- ローカルインストール: `install-local.sh`（sudoなし版）
 
 ---
 
@@ -78,26 +83,60 @@ ccsend boss "タスク開始"   # BOSSに指示を送信
 
 ---
 
-#### `launch-ccteam.sh`
-**目的**: エージェントの起動と初期化
+#### `launch-ccteam-v3.sh` 🆕
+**目的**: 完全手動認証版の起動スクリプト
 ```bash
-./scripts/launch-ccteam.sh [--restart]
+./scripts/launch-ccteam-v3.sh  # またはccteamコマンド
 ```
 **処理フロー**:
 1. 安全確認プロンプト（y/n）
 2. tmuxセッション確認
-3. Claude Code起動（BOSS, Workers）
-4. Gemini起動
-5. 待機モード指示送信（最小限）
+3. Claude Code起動（--dangerously-skip-permissions付き）
+4. Bypass Permissions画面で手動認証
+5. 初期プロンプトは送信しない（ユーザーが入力）
 
-**連携**:
-- ← `setup.sh`（事前実行必須）
-- → `agent-send.sh`（初期指示送信）
-- → `error_loop_detector.py`（エラー監視）
+**v0.1.0での改善**:
+- ✅ 完全手動認証システム
+- ✅ 初期プロンプト送信なし
+- ✅ ユーザー完全制御
 
-**v0.0.6での改善**:
-- ✅ 起動確認プロンプト追加
-- ✅ 初期指示を最小化（暴走防止）
+---
+
+#### `ccteam-guided.sh` 🆕
+**目的**: 初心者向けガイド付き起動
+```bash
+./scripts/ccteam-guided.sh  # またはccguideコマンド
+```
+**機能**:
+- ステップバイステップガイド
+- 環境確認
+- 認証手順の詳細説明
+- トラブルシューティング情報
+
+---
+
+#### `ccteam-monitor.sh` 🆕
+**目的**: リアルタイム状態監視
+```bash
+./scripts/ccteam-monitor.sh  # またはccmonコマンド
+```
+**表示内容**:
+- エージェントの稼働状況（🟢アクティブ/🟡待機中/⚫未起動）
+- 最新の通信履歴
+- インタラクティブ操作（a:Boss接続、w:Worker接続、q:終了）
+
+---
+
+#### `ccteam-prompts.sh` 🆕
+**目的**: プロンプトテンプレート集
+```bash
+./scripts/ccteam-prompts.sh  # またはccpromptコマンド
+```
+**提供テンプレート**:
+- 開発系（開発開始、機能開発、バグ修正）
+- 管理系（点呼確認、進捗確認、タスク再分配）
+- 品質系（コードレビュー、テスト実行、品質チェック）
+- 統合系（統合確認、デプロイ準備、リリース作業）
 
 ---
 
@@ -395,4 +434,4 @@ Claude Code Actions の定義（10個のカスタムアクション）
 
 ---
 
-**最終更新**: 2025年1月9日 v0.0.6
+**最終更新**: 2025年1月10日 v0.1.1
