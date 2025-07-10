@@ -19,15 +19,12 @@ fi
 # 各エージェントを順番に開く
 echo "📋 BOSS (左上) を開いています..."
 ./scripts/open-boss.sh
-sleep 1
 
 echo "🎨 Worker1 (右上) を開いています..."
 ./scripts/open-worker1.sh
-sleep 1
 
 echo "⚙️  Worker2 (左下) を開いています..."
 ./scripts/open-worker2.sh
-sleep 1
 
 echo "🔧 Worker3 (右下) を開いています..."
 ./scripts/open-worker3.sh

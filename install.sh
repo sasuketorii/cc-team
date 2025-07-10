@@ -123,6 +123,12 @@ cat > /tmp/ccnotify << EOF
 cd "$INSTALL_DIR" && ./scripts/notification-manager.sh "\$@"
 EOF
 
+# cccleanコマンド（新規）
+cat > /tmp/ccclean << EOF
+#!/bin/bash
+cd "$INSTALL_DIR" && ./scripts/worktree-cleanup.sh "\$@"
+EOF
+
 # インストール実行
 echo -e "\n${YELLOW}Installing commands to $BIN_DIR...${NC}"
 
@@ -134,7 +140,7 @@ if [ "$INSTALL_MODE" = "global" ] && [ ! -w "$BIN_DIR" ]; then
 fi
 
 # コマンドをインストール
-for cmd in ccteam ccguide ccstatus ccsend ccmon cckill ccworktree ccnotify; do
+for cmd in ccteam ccguide ccstatus ccsend ccmon cckill ccworktree ccnotify ccclean; do
     $SUDO_CMD mv /tmp/$cmd "$BIN_DIR/" 2>/dev/null || {
         echo -e "${RED}Failed to install $cmd${NC}"
         continue
@@ -155,9 +161,12 @@ alias cck='cckill'                    # セッション終了
 # v4新機能
 alias ccw='ccworktree'                # Worktree管理
 alias ccn='ccnotify'                  # 通知テスト
+alias ccc='ccclean'                   # クリーンアップ
 alias ccwt='ccworktree status'        # Worktree状態確認
 alias ccwc='ccworktree create-project-worktrees'  # Worktree作成
 alias ccwi='ccworktree prepare-integration'       # 統合レポート
+alias ccca='ccclean auto'             # 自動クリーンアップ
+alias cccl='ccclean list'             # クリーンアップ候補表示
 
 # ショートカット（Boss v2対応）
 alias ccstart='ccsend boss "requirementsを読み込んでプロジェクトを開始してください"'
@@ -191,6 +200,7 @@ echo "  ${BLUE}ccguide${NC}        - ガイド付き起動"
 echo "  ${BLUE}ccmon${NC}          - リアルタイム監視"
 echo "  ${BLUE}ccworktree${NC}     - Worktree管理 🆕"
 echo "  ${BLUE}ccnotify${NC}       - 通知テスト 🆕"
+echo "  ${BLUE}ccclean${NC}        - Worktreeクリーンアップ 🆕"
 echo ""
 echo "Quick aliases:"
 echo "  ${BLUE}cct${NC}            - ccteamの短縮"

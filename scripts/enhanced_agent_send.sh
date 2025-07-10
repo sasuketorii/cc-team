@@ -69,8 +69,7 @@ echo "[$TIMESTAMP] Sending to $AGENT: $MESSAGE" >> logs/communication.log
 # Ctrl+C を送信してプロンプトをクリア
 tmux send-keys -t "$PANE" C-c
 
-# 少し待機
-sleep 0.5
+# 待機不要 - tmuxは即座に処理可能
 
 # メッセージを送信
 tmux send-keys -t "$PANE" "$MESSAGE" C-m
