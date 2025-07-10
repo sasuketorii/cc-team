@@ -8,6 +8,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# セキュリティユーティリティを読み込み
+if [ -f "$SCRIPT_DIR/security-utils.sh" ]; then
+    source "$SCRIPT_DIR/security-utils.sh"
+fi
+
 # カラー定義
 RED='\033[0;31m'
 GREEN='\033[0;32m'
