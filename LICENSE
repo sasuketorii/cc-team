@@ -1,0 +1,29 @@
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2025 SasukeTorii / REV-C Inc.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+IMPORTANT: 
+This software is licensed under AGPL v3, which means:
+1. If you modify and distribute this software, you must release your modifications under AGPL v3
+2. If you run this software as a network service (SaaS), you must provide the source code to users
+3. You must retain all copyright notices and attributions to SasukeTorii / REV-C Inc.
+
+For commercial licensing options, please contact: https://company.rev-c.com
+
+Full license text: https://www.gnu.org/licenses/agpl-3.0.en.html

@@ -1,7 +1,7 @@
 {
   "name": "ccteam",
-  "version": "0.1.1",
-  "description": "Claude Code Team - AI-Powered Development Environment",
+  "version": "0.1.2",
+  "description": "CCTeam by SasukeTorii - Virtual System Development Company",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -23,7 +23,7 @@
     "automation"
   ],
   "author": "CCTeam",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/ccteam.git"
