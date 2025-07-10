@@ -1,5 +1,5 @@
 #!/bin/bash
-# CCTeam インストーラー v4.0.0
+# CCTeam インストーラー v0.1.5
 # グローバルコマンドとしてCCTeamをインストール
 # DevContainer & Worktree自動化対応
 
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-VERSION="4.0.0"
+VERSION="0.1.5"
 
 echo -e "${BLUE}🚀 CCTeam Installer v$VERSION${NC}"
 echo "================================"

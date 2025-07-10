@@ -1,8 +1,8 @@
 #!/bin/bash
-# CCTeam起動スクリプト v4.0.0
+# CCTeam起動スクリプト v0.1.5
 # DevContainer & Worktree自動化対応版
 
-VERSION="4.0.0"
+VERSION="0.1.5"
 SCRIPT_NAME=$(basename "$0")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -1,0 +1,98 @@
+# ClaudeCode × Git Worktree 開発ベストプラクティス（2025年最新版）
+
+> ClaudeCode における `git worktree` の活用は、並列セッション運用・コンテキスト維持・最適な成果物の選別を実現する革新的なアプローチです。
+
+---
+
+## 📌 概要
+
+ClaudeCode を使った開発では、1つのリポジトリ内で複数のブランチを並列に扱う必要がある場面が多くあります。  
+このとき `git worktree` を用いることで、それぞれの作業を独立したディレクトリとして管理でき、Claude のセッションごとに**明確なコンテキスト分離**が可能になります。
+
+参考記事:  
+🔗 [incident.io – Shipping Faster with Claude Code and Git Worktrees](https://incident.io/blog/shipping-faster-with-claude-code-and-git-worktrees)
+
+---
+
+## ✅ メリット
+
+| 項目 | 内容 |
+|------|------|
+| 🎯 並列作業 | 複数の ClaudeCode セッションを同時に起動可能 |
+| 🔐 コンテキスト維持 | セッションごとに分離された Git 状態を持てる |
+| 🧪 最適解抽出 | 複数候補を生成し、最も優れた出力を選別できる |
+| 🚀 自動化容易 | スクリプト化により「新規 worktree + Claude 起動」を一括実行可能 |
+
+---
+
+## 🛠️ 実装フロー
+
+### 1. ワークツリー作成と ClaudeCode 起動
+
+```bash
+# ブランチごとのワークツリーを作成
+git worktree add ../feature-foo feature-foo
+
+# そのディレクトリで ClaudeCode を起動
+cd ../feature-foo
+claude
+それぞれのワークツリーで claude を起動すると、異なるタスクを並列に実行できます。
+
+2. スクリプト自動化例（bash）
+bash
+コピーする
+編集する
+#!/bin/bash
+# save as `w` and chmod +x
+
+PROJECT_DIR=$1
+BRANCH_NAME=$2
+
+mkdir -p $PROJECT_DIR
+cd $PROJECT_DIR
+git worktree add ../$BRANCH_NAME $BRANCH_NAME
+cd ../$BRANCH_NAME
+claude
+bash
+コピーする
+編集する
+# 実行例
+w myrepo new-feature
+3. CLAUDE.md の導入
+各ブランチ・セッションに共通で読ませる「作業の設計図・目的」を以下のように用意します。
+
+md
+コピーする
+編集する
+# CLAUDE.md
+
+## 🎯 このセッションの目的
+- 「バグ修正：APIレスポンスがnullになる問題を修正」
+- 参考 Issue: #1342
+
+## 📎 使用ガイドライン
+- すべてのファイル編集は Claude に任せる
+- git 操作は Claude に指示
+Claude は CLAUDE.md を自動で読み込み、以降の作業に強く影響を与えます。コンテキスト共有に最適です。
+
+🧠 応用戦略：並列エージェント比較
+Claude セッションを複数立ち上げて、同一のプロンプトに異なるバリエーションを生成させ、最も良い案を選定するパターンです。
+
+bash
+コピーする
+編集する
+# 例
+git worktree add ../variant-a variant-a
+git worktree add ../variant-b variant-b
+
+# 各ディレクトリでそれぞれ Claude を起動
+📚 参考リンク
+🧠 ClaudeCode 公式ドキュメント:
+https://docs.anthropic.com/en/docs/agents/claude-code/introduction
+https://docs.anthropic.com/ja/docs/claude-code/common-workflows
+
+🚀 incident.io の活用事例:
+https://incident.io/blog/shipping-faster-with-claude-code-and-git-worktrees
+
+🎥 YouTube 解説動画:
+https://www.youtube.com/watch?v=f8RnRuaxee8

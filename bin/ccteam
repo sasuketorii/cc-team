@@ -1,8 +1,8 @@
 #!/bin/bash
-# CCTeam グローバルコマンド v4.0.0
+# CCTeam グローバルコマンド v0.1.5
 # DevContainer & Worktree自動化対応
 
-VERSION="4.0.0"
+VERSION="0.1.5"
 
 # CCTeamのインストールディレクトリを検出
 if [ -n "$CCTEAM_HOME" ]; then
