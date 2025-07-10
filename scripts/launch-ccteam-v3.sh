@@ -78,20 +78,20 @@ echo ""
 
 # Boss起動（プロンプト送信なし）
 echo "  💼 Boss起動中..."
-tmux send-keys -t ccteam-boss:main.0 "claude" C-m
+tmux send-keys -t ccteam-boss:main.0 "claude --dangerously-skip-permissions" C-m
 sleep 2
 
 # Workers起動（プロンプト送信なし）
 echo "  🎨 Worker1起動中..."
-tmux send-keys -t ccteam-workers:main.0 "claude" C-m
+tmux send-keys -t ccteam-workers:main.0 "claude --dangerously-skip-permissions" C-m
 sleep 2
 
 echo "  ⚙️  Worker2起動中..."
-tmux send-keys -t ccteam-workers:main.1 "claude" C-m
+tmux send-keys -t ccteam-workers:main.1 "claude --dangerously-skip-permissions" C-m
 sleep 2
 
 echo "  🔧 Worker3起動中..."
-tmux send-keys -t ccteam-workers:main.2 "claude" C-m
+tmux send-keys -t ccteam-workers:main.2 "claude --dangerously-skip-permissions" C-m
 sleep 2
 
 # Geminiは一時的に無効化
