@@ -9,11 +9,17 @@ Claude Code AIエージェントチームによる並列開発環境
 - ✅ **Boss暴走防止**: 自動実行機能を無効化し、待機モードを厳守
 - ✅ **指示書最適化**: boss.mdとworker.mdを安定版に更新
 - ✅ **調査報告書**: investigation_reports/に包括的な分析結果を追加
+- ✅ **ccteam-killコマンド**: `ccteam-kill`でtmuxセッションを安全に終了
 
-### 変更点
+### 重要な変更点
+- **認証フロー修正**: 全自動実行モードで初期プロンプトをBossのみに送信
+  - 全エージェントのBypass Permissions認証完了を待機
+  - 認証後にBossのみに初期指示を送信（Workerには送信しない）
 - `claude-safe-launch.expect`: ユーザー承認モード用の新しい起動スクリプト
+- `claude-auto-launch-v2.expect`: 全自動モード用の改良版（手動認証方式）
 - `boss-enhanced.md`: 無効化（.disabledに変更）
 - 承認モードに応じて異なるexpectスクリプトを使用するように改善
+- Bypass Permissions画面での手動認証に対応
 
 ## 📦 超簡単！3ステップで開始
 
@@ -33,8 +39,16 @@ source ~/.bashrc  # または ~/.zshrc
 ccteam  # これだけ！cdする必要なし！
 
 # 起動時の選択
-# 1) 全自動実行モード（デフォルト）- --dangerously-skip-permissions使用
-# 2) ユーザー承認モード - 通常のClaude CLI（権限確認あり）
+# 1) 全自動実行モード（デフォルト）
+#    - --dangerously-skip-permissions使用
+#    - 各エージェントのBypass Permissions画面で手動で'2'を選択
+#    - 全エージェント認証後、Enterキーを押すとBossのみに初期指示を送信
+#    - Workerには初期プロンプトを送信しない（待機モードを維持）
+#
+# 2) ユーザー承認モード
+#    - 通常のClaude CLI（権限確認あり）
+#    - より慎重な運用向け
+#    - Boss/Worker全員に初期プロンプトを送信
 ```
 
 ### 3️⃣ 使う
@@ -61,6 +75,9 @@ ccv rollback v0.0.1     # 前のバージョンに戻す
 # エージェントと会話
 ccsend boss "進捗どう？"
 ccsend worker1 "ログイン画面作って"
+
+# tmuxセッション終了
+cckill                  # 全tmuxセッションを終了
 ```
 
 ---

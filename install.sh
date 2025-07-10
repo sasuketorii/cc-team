@@ -67,7 +67,13 @@ EOF
 # ccteam-attachコマンド作成
 cat > /tmp/ccteam-attach << EOF
 #!/bin/bash
-tmux attach -t ccteam
+tmux attach -t ccteam-boss || tmux attach -t ccteam-workers
+EOF
+
+# ccteam-killコマンド作成
+cat > /tmp/ccteam-kill << EOF
+#!/bin/bash
+cd "$INSTALL_DIR" && ./scripts/ccteam-kill.sh
 EOF
 
 # /usr/local/binにインストール（sudoが必要）
@@ -75,7 +81,7 @@ echo -e "\n${YELLOW}Installing commands...${NC}"
 echo "This requires sudo permission to install to /usr/local/bin"
 
 # コマンドをインストール
-for cmd in ccteam ccteam-status ccteam-send ccteam-version ccteam-attach; do
+for cmd in ccteam ccteam-status ccteam-send ccteam-version ccteam-attach ccteam-kill; do
     sudo mv /tmp/$cmd /usr/local/bin/
     sudo chmod +x /usr/local/bin/$cmd
     echo -e "${GREEN}✓ Installed: $cmd${NC}"
@@ -89,6 +95,7 @@ alias cca='ccteam-attach'             # tmuxセッションに接続
 alias ccs='ccteam-status'             # ステータス確認
 alias ccv='ccteam-version'            # バージョン管理
 alias ccsend='ccteam-send'            # エージェントにメッセージ送信
+alias cckill='ccteam-kill'            # tmuxセッション終了
 
 # ショートカット
 alias ccbump='ccteam-version bump'    # バージョンアップ

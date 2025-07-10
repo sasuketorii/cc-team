@@ -45,8 +45,9 @@ echo ""
 # デフォルトは全自動実行モード
 if [[ -z "$APPROVAL_MODE" ]] || [[ "$APPROVAL_MODE" == "1" ]]; then
     APPROVAL_MODE="auto"
-    LAUNCH_SCRIPT="./scripts/claude-auto-launch.expect"
+    LAUNCH_SCRIPT="./scripts/claude-auto-launch-v2.expect"
     echo -e "${YELLOW}⚡ 全自動実行モードを選択しました${NC}"
+    echo -e "${YELLOW}   各エージェントのBypass Permissions画面で手動で'2'を選択してください${NC}"
 else
     APPROVAL_MODE="user"
     LAUNCH_SCRIPT="./scripts/claude-safe-launch.expect"
@@ -86,8 +87,15 @@ echo "🎯 幹部陣を起こしています..."
 
 # Boss（幹部セッション）の起動
 tmux send-keys -t ccteam-boss:main.0 "$LAUNCH_SCRIPT" C-m
-sleep 5  # 起動待機時間を延長
-echo "  💼 BOSSが目覚めました！"
+echo "  💼 BOSS起動中... Bypass Permissions画面で'2'を選択してください"
+
+if [[ "$APPROVAL_MODE" == "auto" ]]; then
+    echo ""
+    echo "⏳ 認証完了を待っています（15秒）..."
+    sleep 15
+else
+    sleep 5
+fi
 
 # Gemini（幹部セッション）の起動 - 一時的に無効化
 # tmux send-keys -t ccteam-boss:main.1 "cd $(pwd) && gemini" C-m
@@ -99,25 +107,34 @@ echo "👷 ワーカーたちを起こしています..."
 
 # Worker1 (ペイン0)
 tmux send-keys -t ccteam-workers:main.0 "$LAUNCH_SCRIPT" C-m
-sleep 5  # 起動待機時間を延長
-echo "  🎨 Worker1（フロントエンド）が起きました！"
+echo "  🎨 Worker1起動中... Bypass Permissions画面で'2'を選択してください"
+if [[ "$APPROVAL_MODE" == "auto" ]]; then
+    sleep 10
+else
+    sleep 5
+fi
 
 # Worker2 (ペイン1)
 tmux send-keys -t ccteam-workers:main.1 "$LAUNCH_SCRIPT" C-m
-sleep 5  # 起動待機時間を延長
-echo "  ⚙️  Worker2（バックエンド）が起きました！"
+echo "  ⚙️  Worker2起動中... Bypass Permissions画面で'2'を選択してください"
+if [[ "$APPROVAL_MODE" == "auto" ]]; then
+    sleep 10
+else
+    sleep 5
+fi
 
 # Worker3 (ペイン2)
 tmux send-keys -t ccteam-workers:main.2 "$LAUNCH_SCRIPT" C-m
-sleep 5  # 起動待機時間を延長
-echo "  🔧 Worker3（インフラ/テスト）が起きました！"
+echo "  🔧 Worker3起動中... Bypass Permissions画面で'2'を選択してください"
+if [[ "$APPROVAL_MODE" == "auto" ]]; then
+    sleep 10
+else
+    sleep 5
+fi
 
 echo ""
-echo "🎊 CCTeam全員が目覚めました！"
+echo "🎊 CCTeam全員が起動しました！"
 echo ""
-
-# 待機モードの指示を送信
-echo "⏸️  待機モードの指示を送信しています..."
 
 # BOSSへの初期指示（承認モードを含む）
 if [[ "$APPROVAL_MODE" == "auto" ]]; then
@@ -173,43 +190,61 @@ GEMINI_INSTRUCTION="🤖 Gemini戦略相談役として起動しました。
 💡 左隣のBossからの相談に対して、迅速かつ的確なアドバイスを提供してください。
 ⏸️ 現在は待機モードです。Bossからの相談を待ってください。"
 
-# 各エージェントに指示を送信
-echo ""
-echo "📤 初期指示を送信中..."
+# 全自動実行モードでの認証完了待機
+if [[ "$APPROVAL_MODE" == "auto" ]]; then
+    echo ""
+    echo "⚠️  重要: 各エージェントのBypass Permissions画面で必ず操作してください"
+    echo ""
+    echo "🔢 操作手順:"
+    echo "   1. tmux attach -t ccteam-boss でBossセッションに接続"
+    echo "   2. Bypass Permissions画面で '2' (Yes, I accept) を選択"
+    echo "   3. tmux attach -t ccteam-workers でWorkerセッションに接続"
+    echo "   4. 各WorkerのBypass Permissions画面で '2' を選択"
+    echo "   5. すべて選択完了後、ここでEnterキーを押す"
+    echo ""
+    echo "⏳ 全エージェントの認証待ち..."
+    read -p "   認証が完了したらEnterキーを押してください..."
+    echo ""
+    echo "✅ 認証完了を確認しました"
+    echo ""
+    echo "🔄 Bossに初期指示を送信しています..."
+    ./scripts/agent-send.sh boss "🎯 あなたはこのCCTeamプロジェクトのBossです。
+    
+⚙️ 承認モード: 全自動実行モード
+👥 管理対象: Worker1(フロントエンド), Worker2(バックエンド), Worker3(インフラ)
+📝 指示書: instructions/boss.md
 
-# 全エージェントの起動完了を待つ
-echo ""
-echo "⏳ エージェントの起動完了を待っています..."
-sleep 5
-
-# Boss
-echo -n "  Boss への指示送信... "
-./scripts/agent-send.sh boss "$BOSS_INSTRUCTION" > /dev/null 2>&1
-echo "✅"
-sleep 3
-
-# Workers
-echo -n "  Worker1 への指示送信... "
-./scripts/agent-send.sh worker1 "$WORKER1_INSTRUCTION" > /dev/null 2>&1
-echo "✅"
-sleep 3
-
-echo -n "  Worker2 への指示送信... "
-./scripts/agent-send.sh worker2 "$WORKER2_INSTRUCTION" > /dev/null 2>&1
-echo "✅"
-sleep 3
-
-echo -n "  Worker3 への指示送信... "
-./scripts/agent-send.sh worker3 "$WORKER3_INSTRUCTION" > /dev/null 2>&1
-echo "✅"
-sleep 3
-
-# Gemini（一時的に無効化）
-# echo -n "  Gemini への指示送信... "
-# sleep 3  # Gemini用に追加の待機
-# ./scripts/agent-send.sh gemini "$GEMINI_INSTRUCTION" > /dev/null 2>&1
-# echo "✅"
-echo "  Gemini への指示送信... スキップ（一時無効化）"
+⏸️ 現在は待機モードです。ユーザーからの指示を待ってください。" > /dev/null 2>&1
+    echo "✅ Bossへの指示送信完了"
+else
+    # ユーザー承認モードでの初期指示送信
+    echo ""
+    echo "⏳ エージェントの起動完了を待っています..."
+    sleep 5
+    echo ""
+    echo "🔄 初期指示を送信しています..."
+    # Boss
+    echo -n "  Boss への指示送信... "
+    ./scripts/agent-send.sh boss "$BOSS_INSTRUCTION" > /dev/null 2>&1
+    echo "✅"
+    sleep 3
+    
+    # Workers
+    echo -n "  Worker1 への指示送信... "
+    ./scripts/agent-send.sh worker1 "$WORKER1_INSTRUCTION" > /dev/null 2>&1
+    echo "✅"
+    sleep 3
+    
+    echo -n "  Worker2 への指示送信... "
+    ./scripts/agent-send.sh worker2 "$WORKER2_INSTRUCTION" > /dev/null 2>&1
+    echo "✅"
+    sleep 3
+    
+    echo -n "  Worker3 への指示送信... "
+    ./scripts/agent-send.sh worker3 "$WORKER3_INSTRUCTION" > /dev/null 2>&1
+    echo "✅"
+    sleep 3
+fi
 
 # 起動ログ
 echo "[$TIMESTAMP] CCTeam launched successfully (v2.0.0 - Executive-Worker Architecture)" >> logs/system.log

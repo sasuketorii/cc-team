@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+# Claude自動起動スクリプト v2
+# ユーザーが手動で選択できるバージョン
+
+set timeout 60
+
+# Claude CLIを起動
+spawn claude --dangerously-skip-permissions
+
+# WARNING画面を待つが、自動応答はしない
+expect {
+    -re ".*WARNING.*Bypass.*Permissions.*" {
+        # ユーザーに選択を委ねる
+        puts "\n⚠️  Bypass Permissions選択画面が表示されています"
+        puts "    2を押してEnterで承認してください"
+        interact
+    }
+    -re ".*No, exit.*Yes, I accept.*" {
+        # 選択画面が表示されたら、ユーザーに操作を委ねる
+        interact
+    }
+    timeout {
+        # タイムアウトしても操作を続行
+        interact
+    }
+}
