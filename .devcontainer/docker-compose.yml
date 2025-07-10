@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # 統合プロキシ（全Workerの成果物を1つの画面で確認）
+  nginx-proxy:
+    image: nginx:alpine
+    ports:
+      - "9000:80"  # http://localhost:9000 で統合ビュー
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ccteam-network
+
+  # Worker1のフロントエンド
+  worker1-frontend:
+    build:
+      context: ../worktrees/worker1
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - WORKER_ID=worker1
+    networks:
+      - ccteam-network
+
+  # Worker2のフロントエンド
+  worker2-frontend:
+    build:
+      context: ../worktrees/worker2
+    ports:
+      - "3010:3000"  # 内部3000 → 外部3010にマッピング
+    environment:
+      - NODE_ENV=development
+      - WORKER_ID=worker2
+    networks:
+      - ccteam-network
+
+  # 統合環境
+  integration:
+    build:
+      context: ../worktrees/integration
+    ports:
+      - "3030:3000"
+    environment:
+      - NODE_ENV=integration
+    networks:
+      - ccteam-network
+
+networks:
+  ccteam-network:
+    driver: bridge

@@ -1,0 +1,29 @@
+#!/bin/bash
+# CCTeam グローバルコマンド v4.0.0
+# DevContainer & Worktree自動化対応
+
+VERSION="4.0.0"
+
+# CCTeamのインストールディレクトリを検出
+if [ -n "$CCTEAM_HOME" ]; then
+    CCTEAM_DIR="$CCTEAM_HOME"
+elif [ -d "/usr/local/share/ccteam" ]; then
+    CCTEAM_DIR="/usr/local/share/ccteam"
+elif [ -d "$HOME/.ccteam" ]; then
+    CCTEAM_DIR="$HOME/.ccteam"
+else
+    echo "エラー: CCTeamのインストールディレクトリが見つかりません"
+    echo "install.shを実行してCCTeamをインストールしてください"
+    exit 1
+fi
+
+# v4起動スクリプトが存在する場合は使用
+if [ -f "$CCTEAM_DIR/scripts/launch-ccteam-v4.sh" ]; then
+    exec "$CCTEAM_DIR/scripts/launch-ccteam-v4.sh" "$@"
+# v3にフォールバック
+elif [ -f "$CCTEAM_DIR/scripts/launch-ccteam-v3.sh" ]; then
+    exec "$CCTEAM_DIR/scripts/launch-ccteam-v3.sh" "$@"
+else
+    echo "エラー: CCTeam起動スクリプトが見つかりません"
+    exit 1
+fi

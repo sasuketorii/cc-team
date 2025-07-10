@@ -1,5 +1,5 @@
 {
-  "name": "CCTeam Development",
+  "name": "CCTeam Development - Auto",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   
   "features": {
@@ -11,7 +11,8 @@
     },
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.11"
-    }
+    },
+    "ghcr.io/devcontainers/features/sshd:1": {}
   },
   
   "customizations": {
@@ -25,33 +26,54 @@
         "streetsidesoftware.code-spell-checker",
         "yzhang.markdown-all-in-one",
         "oderwat.indent-rainbow",
-        "PKief.material-icon-theme"
+        "PKief.material-icon-theme",
+        "foxundermoon.shell-format",
+        "timonwong.shellcheck",
+        "mads-hartmann.bash-ide-vscode"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["-l"]
+          }
+        },
+        "terminal.integrated.shellIntegration.enabled": true,
+        "terminal.integrated.automationShell.linux": "/bin/bash",
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "[python]": {
           "editor.defaultFormatter": "ms-python.black-formatter"
         },
-        "files.autoSave": "onFocusChange"
+        "[shellscript]": {
+          "editor.defaultFormatter": "foxundermoon.shell-format"
+        },
+        "files.autoSave": "onFocusChange",
+        "files.watcherExclude": {
+          "**/worktrees/**": true,
+          "**/logs/**": true,
+          "**/memory/*.db": true
+        },
+        "search.exclude": {
+          "**/worktrees/**": true,
+          "**/logs/**": true,
+          "**/.git/**": true
+        }
       }
     }
   },
   
   "mounts": [
-    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached,readonly"
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached,readonly",
+    "source=ccteam-worktrees,target=/workspaces/CCTeam/worktrees,type=volume"
   ],
   
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postCreateCommand": "bash .devcontainer/auto-setup.sh",
   "postStartCommand": "bash .devcontainer/post-start.sh",
   
   "remoteUser": "vscode",
-  
-  "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {}
-  },
   
   "forwardPorts": [3000, 8000, 5173],
   
@@ -68,5 +90,20 @@
       "label": "Vite Dev Server",
       "onAutoForward": "notify"
     }
-  }
+  },
+  
+  "containerEnv": {
+    "CCTEAM_DEV_CONTAINER": "true",
+    "CCTEAM_AUTO_WORKTREE": "true",
+    "BOSS_VERSION": "2.0",
+    "BOSS_AUTO_WORKTREE": "true",
+    "BOSS_NOTIFICATION": "true"
+  },
+  
+  "runArgs": [
+    "--cap-add=SYS_PTRACE",
+    "--security-opt", "seccomp=unconfined"
+  ],
+  
+  "updateContentCommand": "echo 'CCTeam DevContainer Ready!'"
 }
