@@ -25,25 +25,18 @@ fi
 # グローバルコマンドの作成
 echo -e "\n${YELLOW}Creating global commands...${NC}"
 
-# ccteamコマンド作成
+# ccteamコマンド作成（v3起動スクリプトを使用）
 cat > /tmp/ccteam << EOF
 #!/bin/bash
 # CCTeam launcher command
 
 CCTEAM_HOME="$INSTALL_DIR"
 
-# ディレクトリ移動とセットアップ
+# ディレクトリ移動
 cd "\$CCTEAM_HOME" || exit 1
 
-# 初回実行チェック
-if [ ! -f "\$CCTEAM_HOME/.initialized" ]; then
-    echo "🎉 First time setup..."
-    ./scripts/setup.sh
-    touch "\$CCTEAM_HOME/.initialized"
-fi
-
-# CCTeam起動
-./scripts/launch-ccteam.sh
+# CCTeam起動（v3: 手動認証版）
+./scripts/launch-ccteam-v3.sh
 EOF
 
 # ccteam-statusコマンド作成
@@ -76,12 +69,30 @@ cat > /tmp/ccteam-kill << EOF
 cd "$INSTALL_DIR" && ./scripts/ccteam-kill.sh
 EOF
 
+# ccteam-guidedコマンド作成
+cat > /tmp/ccteam-guided << EOF
+#!/bin/bash
+cd "$INSTALL_DIR" && ./scripts/ccteam-guided.sh
+EOF
+
+# ccteam-monitorコマンド作成
+cat > /tmp/ccteam-monitor << EOF
+#!/bin/bash
+cd "$INSTALL_DIR" && ./scripts/ccteam-monitor.sh
+EOF
+
+# ccteam-promptsコマンド作成
+cat > /tmp/ccteam-prompts << EOF
+#!/bin/bash
+cd "$INSTALL_DIR" && ./scripts/ccteam-prompts.sh
+EOF
+
 # /usr/local/binにインストール（sudoが必要）
 echo -e "\n${YELLOW}Installing commands...${NC}"
 echo "This requires sudo permission to install to /usr/local/bin"
 
 # コマンドをインストール
-for cmd in ccteam ccteam-status ccteam-send ccteam-version ccteam-attach ccteam-kill; do
+for cmd in ccteam ccteam-status ccteam-send ccteam-version ccteam-attach ccteam-kill ccteam-guided ccteam-monitor ccteam-prompts; do
     sudo mv /tmp/$cmd /usr/local/bin/
     sudo chmod +x /usr/local/bin/$cmd
     echo -e "${GREEN}✓ Installed: $cmd${NC}"
@@ -96,6 +107,9 @@ alias ccs='ccteam-status'             # ステータス確認
 alias ccv='ccteam-version'            # バージョン管理
 alias ccsend='ccteam-send'            # エージェントにメッセージ送信
 alias cckill='ccteam-kill'            # tmuxセッション終了
+alias ccguide='ccteam-guided'         # ガイド付き起動
+alias ccmon='ccteam-monitor'          # 状態監視
+alias ccprompt='ccteam-prompts'       # プロンプト例
 
 # ショートカット
 alias ccbump='ccteam-version bump'    # バージョンアップ
@@ -116,10 +130,14 @@ echo ""
 echo -e "${GREEN}✅ Installation Complete!${NC}"
 echo ""
 echo "You can now use:"
-echo "  ${BLUE}ccteam${NC}         - Start CCTeam from anywhere"
+echo "  ${BLUE}ccteam${NC}         - Start CCTeam (v3: 手動認証版)"
+echo "  ${BLUE}ccguide${NC}        - ガイド付き起動（初心者向け）"
+echo "  ${BLUE}ccmon${NC}          - リアルタイム状態監視"
+echo "  ${BLUE}ccprompt${NC}       - プロンプトテンプレート表示"
 echo "  ${BLUE}cct${NC}            - Short alias for ccteam"
 echo "  ${BLUE}cca${NC}            - Attach to running session"
 echo "  ${BLUE}ccs${NC}            - Check status"
+echo "  ${BLUE}cckill${NC}         - Kill all tmux sessions"
 echo "  ${BLUE}ccv bump${NC}       - Version up (0.0.1 → 0.0.2)"
 echo "  ${BLUE}ccsend boss${NC}    - Send message to agent"
 echo ""
