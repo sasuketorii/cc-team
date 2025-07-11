@@ -6,7 +6,7 @@
   <h3>要件定義を入れるだけで、AIチームが24時間365日開発を続ける</h3>
   <br>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.11-blue.svg" />
+    <img src="https://img.shields.io/badge/version-0.1.12-blue.svg" />
     <img src="https://img.shields.io/badge/claude-opus--4-purple.svg" />
     <img src="https://img.shields.io/badge/by-SasukeTorii-orange.svg" />
     <img src="https://img.shields.io/badge/license-AGPL--3.0-green.svg" />

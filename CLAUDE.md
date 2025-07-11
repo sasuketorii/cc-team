@@ -1,4 +1,4 @@
-# CCTeam プロジェクト v0.1.5
+# CCTeam プロジェクト v0.1.12
 
 ## 概要
 CCTeamはClaude Code AIエージェントによる統合Boss + 3 Workers構成の開発チームです。tmuxを使用して単一セッションで全エージェントを管理し、効率的な並列開発を実現します。
@@ -66,6 +66,7 @@ npm run lint                      # リント実行
 - **PRルール**: 必ずコードレビューを実施
 - **マージ戦略**: Squash and Mergeを使用
 - **テスト**: マージ前に必ずテストを実行
+- **Git安全対策**: ホームディレクトリでgit addしない（~/は別リポジトリ）
 
 ## CCTeam Specific Rules
 
