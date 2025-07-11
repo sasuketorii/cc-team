@@ -117,6 +117,47 @@ echo "ユーザー認証機能を実装して" > requirements/機能要件.md
 # AIチームが開発を開始 🚀
 ```
 
+### GitHubからの利用方法（ローカルインストール不要）
+
+#### 1️⃣ Issueコメントでインストール
+```bash
+# IssueまたはPRにコメント
+/install-github-app
+
+# 🚀 リアクションが付き、インストール手順が表示されます
+```
+
+#### 2️⃣ 自動プロジェクトセットアップ
+```markdown
+# Issueを作成
+タイトル: [CCTeam Setup] ECサイト開発
+
+本文:
+Project Type: web-app
+Tech Stack: react-node
+
+要件:
+- ユーザー認証機能
+- 商品カタログ
+- ショッピングカート
+```
+
+🤖 GitHub Actionsが自動で：
+- 要件ファイル作成
+- 技術スタック設定
+- プロジェクト構造初期化
+- Issueを自動クローズ
+
+#### 3️⃣ ワークフローから手動実行
+```yaml
+# GitHub Actions → Install CCTeam
+# 入力パラメータ:
+- install_mode: global/local/devcontainer
+- target_os: ubuntu/macos/windows
+- project_type: web-app/mobile-app/api-service
+- tech_stack: react-node/vue-python/etc
+```
+
 <div align="center">
   <h3>⚡ 他のAIツールとの決定的な違い</h3>
   <p><b>毎回クローンやディレクトリ移動は不要！</b></p>
@@ -148,6 +189,12 @@ code cc-team/CCTeam
 - 🛡️ **セキュリティスキャン** - 脆弱性を自動検出
 - 🔧 **自動修正** - PRコメントで`/fix`と入力するだけ
 - 📊 **定期メンテナンス** - ログ整理・依存関係更新を自動実行
+
+### 🆕 GitHub App機能（v0.1.7）
+- 🤖 **コメントコマンド** - Issue/PRで`/install-github-app`と入力
+- 🚀 **自動セットアップ** - `[CCTeam Setup]`タイトルでIssue作成
+- 🎯 **ワークフロー実行** - Actionsから手動でインストール
+- 📦 **プロジェクト初期化** - 要件定義と技術スタックを自動生成
 
 ---
 

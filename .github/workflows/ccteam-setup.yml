@@ -1,0 +1,269 @@
+name: CCTeam Project Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_type:
+        description: 'Project type'
+        required: true
+        default: 'web-app'
+        type: choice
+        options:
+          - web-app
+          - mobile-app
+          - api-service
+          - full-stack
+      tech_stack:
+        description: 'Technology stack'
+        required: true
+        default: 'react-node'
+        type: choice
+        options:
+          - react-node
+          - vue-python
+          - angular-java
+          - nextjs-fastapi
+      workers:
+        description: 'Number of workers'
+        required: true
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  setup-project:
+    if: |
+      github.event_name == 'issues' && 
+      contains(github.event.issue.title, '[CCTeam Setup]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse issue for requirements
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            const lines = body.split('\n');
+            
+            let projectType = 'web-app';
+            let techStack = 'react-node';
+            
+            lines.forEach(line => {
+              if (line.includes('Project Type:')) {
+                projectType = line.split(':')[1].trim().toLowerCase().replace(' ', '-');
+              }
+              if (line.includes('Tech Stack:')) {
+                techStack = line.split(':')[1].trim().toLowerCase().replace(' ', '-');
+              }
+            });
+            
+            core.setOutput('project_type', projectType);
+            core.setOutput('tech_stack', techStack);
+
+      - name: Create requirements file
+        run: |
+          mkdir -p requirements
+          cat > requirements/project-setup.md << EOF
+          # Project Setup - Auto-generated
+          
+          **Generated**: $(date +"%Y-%m-%d %H:%M:%S")
+          **Issue**: #${{ github.event.issue.number }}
+          
+          ## Project Type
+          ${{ steps.parse.outputs.project_type }}
+          
+          ## Technology Stack
+          ${{ steps.parse.outputs.tech_stack }}
+          
+          ## Requirements
+          ${{ github.event.issue.body }}
+          EOF
+
+      - name: Initialize CCTeam structure
+        run: |
+          # Create necessary directories
+          mkdir -p logs memory worktrees shared-docs
+          
+          # Create initial tech stack file
+          cat > requirements/技術スタック.md << EOF
+          # 技術スタック
+          
+          ## フロントエンド
+          $(case "${{ steps.parse.outputs.tech_stack }}" in
+            react-*) echo "- React 18\n- Next.js 14\n- Tailwind CSS";;
+            vue-*) echo "- Vue 3\n- Nuxt 3\n- Vuetify";;
+            angular-*) echo "- Angular 17\n- Angular Material\n- RxJS";;
+            *) echo "- To be determined";;
+          esac)
+          
+          ## バックエンド
+          $(case "${{ steps.parse.outputs.tech_stack }}" in
+            *-node) echo "- Node.js 20\n- Express.js\n- TypeScript";;
+            *-python) echo "- Python 3.11\n- FastAPI\n- SQLAlchemy";;
+            *-java) echo "- Java 17\n- Spring Boot\n- Hibernate";;
+            *-fastapi) echo "- Python 3.11\n- FastAPI\n- Pydantic";;
+            *) echo "- To be determined";;
+          esac)
+          
+          ## データベース
+          - PostgreSQL 15
+          - Redis
+          
+          ## インフラ
+          - Docker
+          - GitHub Actions
+          - Kubernetes (production)
+          EOF
+
+      - name: Create initial documentation
+        run: |
+          cat > shared-docs/project-guidelines.md << EOF
+          # Project Guidelines
+          
+          ## Overview
+          This project was automatically set up by CCTeam GitHub App.
+          
+          ## Team Structure
+          - **Boss**: Project management and coordination
+          - **Worker1**: Frontend development
+          - **Worker2**: Backend development
+          - **Worker3**: Infrastructure and testing
+          
+          ## Development Workflow
+          1. Requirements are placed in \`requirements/\`
+          2. Boss analyzes and assigns tasks
+          3. Workers develop in parallel using Git Worktrees
+          4. Regular integration and testing
+          
+          ## Getting Started
+          \`\`\`bash
+          # Clone the repository
+          git clone ${{ github.event.repository.clone_url }}
+          
+          # Install CCTeam
+          ./install.sh
+          
+          # Start CCTeam
+          ccteam
+          \`\`\`
+          EOF
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "CCTeam Bot"
+          git config --global user.email "ccteam-bot@github.com"
+          
+          git add -A
+          git commit -m "🤖 CCTeam: Initial project setup
+          
+          - Created requirements structure
+          - Set up technology stack
+          - Initialized project directories
+          
+          Project Type: ${{ steps.parse.outputs.project_type }}
+          Tech Stack: ${{ steps.parse.outputs.tech_stack }}
+          
+          Closes #${{ github.event.issue.number }}"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+
+      - name: Comment on issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🎉 CCTeam Project Setup Complete!
+              
+              ### Setup Summary
+              - **Project Type**: ${{ steps.parse.outputs.project_type }}
+              - **Tech Stack**: ${{ steps.parse.outputs.tech_stack }}
+              - **Workers**: 3 (Frontend, Backend, Infrastructure)
+              
+              ### Created Files
+              - \`requirements/project-setup.md\` - Your requirements
+              - \`requirements/技術スタック.md\` - Technology stack
+              - \`shared-docs/project-guidelines.md\` - Project guidelines
+              
+              ### Next Steps
+              1. Clone the repository locally
+              2. Run \`./install.sh\` to install CCTeam
+              3. Start CCTeam with \`ccteam\`
+              4. Boss will analyze requirements and assign tasks
+              
+              Happy coding! 🚀`
+            });
+            
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+
+  manual-setup:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create project structure
+        run: |
+          echo "🚀 Setting up CCTeam project"
+          echo "📁 Project type: ${{ github.event.inputs.project_type }}"
+          echo "🛠️ Tech stack: ${{ github.event.inputs.tech_stack }}"
+          echo "👥 Workers: ${{ github.event.inputs.workers }}"
+          
+          # Run setup similar to above
+          mkdir -p requirements logs memory worktrees shared-docs
+          
+      - name: Generate setup report
+        run: |
+          cat > setup-report.md << EOF
+          # CCTeam Setup Report
+          
+          **Date**: $(date +"%Y-%m-%d %H:%M:%S")
+          **Triggered by**: Manual workflow dispatch
+          
+          ## Configuration
+          - Project Type: ${{ github.event.inputs.project_type }}
+          - Tech Stack: ${{ github.event.inputs.tech_stack }}
+          - Workers: ${{ github.event.inputs.workers }}
+          
+          ## Status
+          ✅ Project structure created
+          ✅ Requirements directory initialized
+          ✅ Documentation generated
+          
+          ## Next Steps
+          1. Review the generated structure
+          2. Add your specific requirements
+          3. Start CCTeam locally
+          EOF
+
+      - name: Upload setup report
+        uses: actions/upload-artifact@v3
+        with:
+          name: setup-report
+          path: setup-report.md

@@ -1,0 +1,176 @@
+name: Install CCTeam
+
+on:
+  workflow_dispatch:
+    inputs:
+      install_mode:
+        description: 'Installation mode'
+        required: true
+        default: 'global'
+        type: choice
+        options:
+          - global
+          - local
+          - devcontainer
+      target_os:
+        description: 'Target OS'
+        required: true
+        default: 'ubuntu-latest'
+        type: choice
+        options:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  install-from-comment:
+    if: |
+      github.event_name == 'issue_comment' && 
+      contains(github.event.comment.body, '/install-github-app')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check permissions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: user } = await github.rest.users.get({
+              username: context.payload.comment.user.login
+            });
+            
+            const { data: permissions } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: user.login
+            });
+            
+            if (!['admin', 'write'].includes(permissions.permission)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '❌ You need write permissions to run this command.'
+              });
+              throw new Error('Insufficient permissions');
+            }
+
+      - name: React to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install CCTeam
+        run: |
+          chmod +x install.sh
+          ./install.sh --local
+
+      - name: Post installation report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `
+            ## ✅ CCTeam Installation Complete!
+            
+            ### Installation Details
+            - **Mode**: Local installation
+            - **OS**: Ubuntu Latest
+            - **Version**: v0.1.7
+            
+            ### Next Steps
+            1. Clone the repository locally
+            2. Run \`./install.sh\` to install CCTeam
+            3. Add to your shell config: \`source ~/.ccteam-commands\`
+            4. Start CCTeam with: \`ccteam\`
+            
+            ### Available Commands
+            - \`ccteam\` - Start CCTeam
+            - \`ccguide\` - Guided startup
+            - \`ccstatus\` - Check status
+            - \`ccmon\` - Monitor in real-time
+            
+            For more information, see the [README](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/README.md)
+            `;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: output
+            });
+
+  install-manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ${{ github.event.inputs.target_os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        shell: bash
+        run: |
+          echo "🚀 Installing CCTeam on ${{ github.event.inputs.target_os }}"
+          echo "📦 Installation mode: ${{ github.event.inputs.install_mode }}"
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tmux git curl sqlite3
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install tmux git sqlite3
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "⚠️ Windows requires WSL2 for full functionality"
+          # Windows specific setup would go here
+
+      - name: Run installation
+        shell: bash
+        run: |
+          chmod +x install.sh
+          ./install.sh --${{ github.event.inputs.install_mode }}
+
+      - name: Verify installation
+        shell: bash
+        run: |
+          if [ "${{ github.event.inputs.install_mode }}" = "local" ]; then
+            export PATH="$HOME/.local/bin:$PATH"
+          fi
+          
+          # Check if commands are available
+          which ccteam || echo "ccteam not found in PATH"
+          which ccguide || echo "ccguide not found in PATH"
+          
+          # Show installation summary
+          echo "Installation complete!"
+          echo "Version: $(cat install.sh | grep VERSION= | cut -d'"' -f2)"
+
+      - name: Upload installation logs
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: installation-logs
+          path: |
+            logs/
+            *.log

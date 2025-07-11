@@ -1,0 +1,81 @@
+name: CCTeam Project Setup
+description: Initialize a new project with CCTeam
+title: "[CCTeam Setup] "
+labels: ["ccteam", "setup", "automation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🤖 CCTeam自動セットアップ
+        このIssueを作成すると、GitHub Actionsが自動的にプロジェクトをセットアップします。
+
+  - type: dropdown
+    id: project-type
+    attributes:
+      label: Project Type
+      description: 開発するプロジェクトのタイプ
+      options:
+        - Web Application
+        - Mobile Application
+        - API Service
+        - Full Stack Application
+        - CLI Tool
+        - Library/Package
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tech-stack
+    attributes:
+      label: Technology Stack
+      description: 使用する技術スタック
+      options:
+        - React + Node.js
+        - Vue + Python
+        - Angular + Java
+        - Next.js + FastAPI
+        - React Native + Express
+        - Flutter + Spring Boot
+        - Custom (specify below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Project Requirements
+      description: プロジェクトの要件を記載してください
+      placeholder: |
+        例：
+        - ユーザー認証機能（メール/パスワード、OAuth）
+        - 商品カタログ表示
+        - ショッピングカート機能
+        - 決済システム連携
+        - 管理画面
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: その他の情報や特別な要件
+      placeholder: |
+        例：
+        - デプロイ先: AWS/GCP/Azure
+        - データベース: PostgreSQL/MySQL/MongoDB
+        - 認証方式: JWT/Session
+        - API仕様: REST/GraphQL
+
+  - type: checkboxes
+    id: features
+    attributes:
+      label: Required Features
+      description: 必要な機能を選択してください
+      options:
+        - label: CI/CD Pipeline
+        - label: Docker環境
+        - label: テスト自動化
+        - label: ドキュメント生成
+        - label: セキュリティスキャン
+        - label: パフォーマンス監視
