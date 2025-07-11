@@ -117,14 +117,36 @@ echo "ユーザー認証機能を実装して" > requirements/機能要件.md
 # AIチームが開発を開始 🚀
 ```
 
-### GitHubからの利用方法（ローカルインストール不要）
+### GitHubからのClaude Code実行（ローカル不要！）
 
-#### 1️⃣ Issueコメントでインストール
+⚡ **Claude MAXプランユーザーの方へ**
+- GitHub連携が完了していれば、APIキー設定は不要です
+- @claudeメンションですぐに利用開始できます
+
+#### 1️⃣ @claudeメンションでAI実行
 ```bash
 # IssueまたはPRにコメント
-/install-github-app
+@claude ダークモード対応を追加して
 
-# 🚀 リアクションが付き、インストール手順が表示されます
+# 🤖 Claudeが実際にコードを変更し、PRを作成します
+```
+
+#### 2️⃣ CCTeam BossをGitHubで動かす
+```bash
+# Bossにタスクを依頼
+@claude boss 要件定義を分析してタスク分配計画を作成して
+
+# 👑 Bossが要件分析と計画立案を実行
+```
+
+#### 3️⃣ 自動リリース
+```bash
+# バージョンタグ付けとリリース
+@claude release patch  # v0.1.9 -> v0.1.10
+@claude release minor  # v0.1.9 -> v0.2.0
+@claude release major  # v0.1.9 -> v1.0.0
+
+# 🚀 CHANGELOG更新、タグ作成、リリース作成まで自動
 ```
 
 #### 2️⃣ 自動プロジェクトセットアップ
@@ -190,11 +212,12 @@ code cc-team/CCTeam
 - 🔧 **自動修正** - PRコメントで`/fix`と入力するだけ
 - 📊 **定期メンテナンス** - ログ整理・依存関係更新を自動実行
 
-### 🆕 GitHub App機能（v0.1.7）
-- 🤖 **コメントコマンド** - Issue/PRで`/install-github-app`と入力
-- 🚀 **自動セットアップ** - `[CCTeam Setup]`タイトルでIssue作成
-- 🎯 **ワークフロー実行** - Actionsから手動でインストール
-- 📦 **プロジェクト初期化** - 要件定義と技術スタックを自動生成
+### 🆕 GitHub Claude Code Action（v0.1.9）
+- 🤖 **@claudeメンション** - Issue/PRで`@claude`でAI実行
+- 👑 **@claude boss** - CCTeam BossがGitHub上で動作
+- 🚀 **完全自動化** - コード変更からリリースまで
+- 🎯 **@claude release** - バージョンタグ付けとリリース
+- 📦 **プロジェクト初期化** - `[CCTeam Setup]`で自動セットアップ
 
 ---
 

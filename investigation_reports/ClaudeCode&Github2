@@ -1,0 +1,284 @@
+# Claude Code GitHub Actions 完全ガイド
+
+## 概要
+
+Claude Code GitHub Actionsは、GitHubリポジトリ内でClaude Codeを非対話的に使用し、コード変更からリリースまでを自動化するためのツールです。
+
+## @claude でできること
+
+### ✅ 可能なこと
+
+Claude Code GitHub Actionsは以下のことができます：
+
+1. **コード変更の実装**
+   ```
+   @claude このコンポーネントにダークモード対応を追加して
+   ```
+
+2. **自動的なコミット作成**
+   - 変更をコミット
+   - 説明的なコミットメッセージを生成
+
+3. **PR（プルリクエスト）の作成**
+   - 新しいブランチに変更をプッシュ
+   - PRを作成（直接mainにプッシュではない）
+
+### ⚠️ 制限事項
+
+Claude Code GitHub Actionsは以下のことはできません：
+
+1. **直接のマージ/承認**
+   - セキュリティ上の理由でPRの自動承認は不可
+   - 人間のレビューが必要
+
+2. **バージョンタグの自動付与**
+   - デフォルトではタグ付けまでは行わない
+   - 追加設定が必要
+
+## Claude Code SDKアーキテクチャ
+
+### アーキテクチャの構造
+
+```
+┌─────────────────────────────────────┐
+│   GitHub Actions (@claude mention)   │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│    Claude Code GitHub Actions       │
+│  (anthropics/claude-code-action)    │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│       Claude Code SDK               │
+│   (プログラマティックインターフェース)    │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│    Claude API (Anthropic)           │
+└─────────────────────────────────────┘
+```
+
+### Claude Code SDKの詳細
+
+Claude Code SDKは、アプリケーションからClaude Codeを非対話モードで使用することを可能にします。
+
+#### SDKの主な機能
+
+1. **プログラマティックアクセス**
+   ```javascript
+   // SDKを使用した例
+   const response = await claude.run({
+     prompt: "Implement user authentication",
+     model: "claude-opus-4-20250514",
+     allowedTools: ["Edit", "View", "Bash"],
+     cwd: process.cwd()
+   });
+   ```
+
+## 認証方法
+
+- **Anthropic API直接認証**
+- **AWS Bedrock**
+- **Google Vertex AI**
+
+## MCP（Model Context Protocol）サポート
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"]
+    }
+  }
+}
+```
+
+## バージョンタグを含む完全自動化の実装
+
+### 基本的な自動化ワークフロー
+
+```yaml
+name: Claude Auto Version Release
+
+on:
+  issue_comment:
+    types: [created]
+  
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  
+jobs:
+  claude-implementation:
+    if: contains(github.event.comment.body, '@claude release')
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Claudeが変更を実装
+      - uses: anthropics/claude-code-action@beta
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          
+      # 2. バージョンタグの自動付与
+      - name: Bump version and create tag
+        if: success()
+        run: |
+          # package.jsonのバージョンを更新
+          npm version patch -m "Release v%s"
+          
+          # タグをプッシュ
+          git push --follow-tags
+          
+      # 3. リリースノートの生成
+      - name: Create Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          release_name: Release ${{ steps.version.outputs.new_tag }}
+          body: |
+            Changes implemented by Claude:
+            ${{ steps.claude.outputs.changes }}
+```
+
+### より高度な自動化（claude-code-base-action使用）
+
+```yaml
+name: Full Automation with Claude
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Task for Claude'
+        required: true
+
+jobs:
+  automate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Claudeに実装させる
+      - uses: anthropics/claude-code-base-action@beta
+        with:
+          prompt: |
+            ${{ github.event.inputs.task }}
+            実装後、以下も実行：
+            1. テストを実行して合格を確認
+            2. CHANGELOGを更新
+            3. package.jsonのバージョンを更新
+          allowed_tools: "Bash(*),Edit,View"
+          
+      # 自動コミット・タグ付け
+      - name: Commit and Tag
+        run: |
+          git config user.name "Claude Bot"
+          git config user.email "claude@example.com"
+          
+          # 変更をコミット
+          git add -A
+          git commit -m "feat: ${{ github.event.inputs.task }}"
+          
+          # セマンティックバージョニング
+          VERSION=$(npx standard-version --dry-run | grep "tagging release" | awk '{print $4}')
+          git tag -a "$VERSION" -m "Release $VERSION"
+          
+          # プッシュ
+          git push origin main --tags
+```
+
+## GitHub Actions内での動作フロー
+
+GitHub Actionsで@claudeメンションすると：
+
+1. **GitHub Actionがトリガー**
+   - コメントイベントを検知
+
+2. **Claude Code SDKが起動**
+   - 非対話モード（ヘッドレス）で実行
+   - プロンプトと設定を受け取る
+
+3. **コード変更を実行**
+   - ファイル編集
+   - テスト実行
+   - コミット作成
+
+4. **結果をGitHubに返す**
+   - PRの作成
+   - コメントの更新
+
+## 実用的な使用例
+
+### 1. バグ修正の自動化
+```
+@claude Fix the null pointer exception in auth.js and create a patch release
+```
+
+### 2. 機能追加とリリース
+```
+@claude Add rate limiting to the API endpoints and prepare for v2.1.0 release
+```
+
+### 3. ドキュメント更新
+```
+@claude Update README with the new API endpoints and bump minor version
+```
+
+## カスタム統合の可能性
+
+### base-actionでの直接的なSDK使用
+
+```yaml
+- uses: anthropics/claude-code-base-action@beta
+  with:
+    prompt: "Refactor this function"
+    # これは内部でClaude Code SDKを使用
+    allowed_tools: "Edit,View,Bash"
+    model: "claude-opus-4-20250514"
+```
+
+### 独自のSDK統合
+
+```javascript
+// 独自のGitHub Action内で
+const { ClaudeCodeSDK } = require('@anthropic/claude-code-sdk');
+
+const sdk = new ClaudeCodeSDK({
+  apiKey: process.env.ANTHROPIC_API_KEY
+});
+
+// カスタムワークフロー
+await sdk.runTask({
+  prompt: "Custom task implementation",
+  hooks: {
+    beforeEdit: (file) => console.log(`Editing ${file}`),
+    afterCommit: (sha) => console.log(`Committed ${sha}`)
+  }
+});
+```
+
+## 重要な考慮事項
+
+### セキュリティ
+
+- 直接mainブランチへのプッシュは避ける
+- PRベースのワークフローを推奨
+
+### バージョニング戦略
+
+- セマンティックバージョニングの採用
+- 自動化ルールの明確化
+
+### テストの統合
+
+- 変更後の自動テスト実行
+- テスト失敗時のロールバック
+
+## まとめ
+
+- GitHub ActionsでのClaude Codeは、Claude Code SDKを使用
+- @claudeメンションで開始して、コード変更からバージョンタグ付け、リリースまでの完全自動化が可能
+- ローカルのClaude Code CLIツールと同じコア機能を持つが、非対話的な環境向けに最適化
+- 適切な設定とセキュリティ考慮が必要 
