@@ -16,9 +16,15 @@ permissions:
   issues: write
   actions: write
 
+# 並行処理制御
+concurrency:
+  group: claude-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   claude-code:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # 30分でタイムアウト
     # @claudeメンションがある場合に実行
     if: |
       contains(github.event.comment.body, '@claude') ||
@@ -26,6 +32,11 @@ jobs:
       contains(github.event.pull_request.body, '@claude')
     
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 完全なgit履歴を取得
+          
       - name: Run Claude Code
         uses: anthropics/claude-code-action@beta
         with:
@@ -35,6 +46,9 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # 2. またはAnthropic APIキー（オプション）
           # anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          
+          # 明示的なトークン指定
+          token: ${{ secrets.GITHUB_TOKEN }}
           
   # CCTeam Bossコマンドを含む場合の特別処理
   # @claudeに「boss」キーワードが含まれる場合、CCTeam Bossとして動作

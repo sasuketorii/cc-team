@@ -30,12 +30,18 @@ permissions:
   issues: write
   pull-requests: write
 
+# 並行処理制御
+concurrency:
+  group: install-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   install-from-comment:
     if: |
       github.event_name == 'issue_comment' && 
       contains(github.event.comment.body, '/install-github-app')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check permissions
         uses: actions/github-script@v7
@@ -74,6 +80,8 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install CCTeam
         run: |
@@ -117,9 +125,12 @@ jobs:
   install-manual:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ github.event.inputs.target_os }}
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup environment
         shell: bash

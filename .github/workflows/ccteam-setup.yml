@@ -41,15 +41,23 @@ permissions:
   issues: write
   pull-requests: write
 
+# 並行処理制御
+concurrency:
+  group: setup-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   setup-project:
     if: |
       github.event_name == 'issues' && 
       contains(github.event.issue.title, '[CCTeam Setup]')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Parse issue for requirements
         id: parse
@@ -224,9 +232,12 @@ jobs:
   manual-setup:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Create project structure
         run: |
