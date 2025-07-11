@@ -119,9 +119,12 @@ echo "ユーザー認証機能を実装して" > requirements/機能要件.md
 
 ### GitHubからのClaude Code実行（ローカル不要！）
 
-⚡ **Claude MAXプランユーザーの方へ**
-- GitHub連携が完了していれば、APIキー設定は不要です
-- @claudeメンションですぐに利用開始できます
+⚡ **セットアップ方法**
+1. Claude Codeで `/install-github-app` を実行
+2. GitHub Appがインストールされ、連携完了
+3. @claudeメンションですぐに利用開始！
+
+**MAXプランユーザー**: OAuthトークンを`claude setup-token`で生成可能
 
 #### 1️⃣ @claudeメンションでAI実行
 ```bash
@@ -212,12 +215,12 @@ code cc-team/CCTeam
 - 🔧 **自動修正** - PRコメントで`/fix`と入力するだけ
 - 📊 **定期メンテナンス** - ログ整理・依存関係更新を自動実行
 
-### 🆕 GitHub Claude Code Action（v0.1.9）
-- 🤖 **@claudeメンション** - Issue/PRで`@claude`でAI実行
-- 👑 **@claude boss** - CCTeam BossがGitHub上で動作
-- 🚀 **完全自動化** - コード変更からリリースまで
-- 🎯 **@claude release** - バージョンタグ付けとリリース
-- 📦 **プロジェクト初期化** - `[CCTeam Setup]`で自動セットアップ
+### 🆕 GitHub Claude Code Action（v0.1.10）
+- 🌐 **公式アクション** - `anthropics/claude-code-action@beta`
+- 🤖 **@claudeメンション** - Issue/PRでAIがコード変更を実行
+- 👑 **Boss機能** - `boss`キーワードでCCTeam Bossとして動作
+- 🚀 **リリース自動化** - `release`コマンドでバージョン管理
+- 🔧 **簡単セットアップ** - `/install-github-app`で即利用開始
 
 ---
 
