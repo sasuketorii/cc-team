@@ -1,0 +1,287 @@
+name: CCTeam Roll Call
+
+# このワークフローは以下の方法でトリガーできます：
+# 1. GitHub Actions UIから手動実行（workflow_dispatch）
+# 2. Issue/PRコメントで「/roll-call」コマンドを使用
+#
+# 使用例:
+#   - Issue/PRで「/roll-call」とコメント
+#   - 「/roll-call --verbose」で詳細モード
+#   - 「/roll-call --check」でヘルスチェック付き
+
+on:
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: '詳細なログを出力'
+        required: false
+        default: 'false'
+        type: boolean
+      health_check:
+        description: 'ヘルスチェックを実行'
+        required: false
+        default: 'true'
+        type: boolean
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+# 並行処理制御
+concurrency:
+  group: roll-call-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  roll-call:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && 
+       contains(github.event.comment.body, '/roll-call'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup environment
+        run: |
+          echo "📦 環境セットアップを開始..."
+          sudo apt-get update
+          sudo apt-get install -y tmux expect jq sqlite3
+          
+          # Python環境のセットアップ（エラーループ検出などに使用）
+          python3 -m pip install --upgrade pip
+          pip3 install jinja2
+          
+      - name: React to comment (if triggered by comment)
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+            
+      - name: Setup CCTeam environment
+        run: |
+          echo "🔧 CCTeam環境を準備中..."
+          
+          # スクリプトに実行権限を付与
+          chmod +x scripts/*.sh
+          chmod +x scripts/common/*.sh || true
+          
+          # 必要なディレクトリを作成
+          mkdir -p logs memory worktrees shared-docs
+          
+          # tmuxセッションを作成（実際のCCTeam起動はしない）
+          tmux new-session -d -s ccteam-demo || true
+          
+          # プロジェクト状態を確認
+          if [ -f "./scripts/project-status.sh" ]; then
+            echo "📊 プロジェクト状態:"
+            ./scripts/project-status.sh || echo "プロジェクト状態の取得をスキップ"
+          fi
+          
+      - name: Simulate Roll Call
+        id: roll-call
+        run: |
+          # コマンドオプションの解析
+          COMMENT_BODY="${{ github.event.comment.body || '' }}"
+          VERBOSE=false
+          HEALTH_CHECK=true
+          
+          if [[ "$COMMENT_BODY" == *"--verbose"* ]] || [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            VERBOSE=true
+          fi
+          
+          if [[ "$COMMENT_BODY" == *"--no-check"* ]] || [[ "${{ github.event.inputs.health_check }}" == "false" ]]; then
+            HEALTH_CHECK=false
+          fi
+          
+          echo "⚙️ オプション: VERBOSE=$VERBOSE, HEALTH_CHECK=$HEALTH_CHECK"
+          
+          # レポートヘッダーの作成
+          cat > roll-call-result.md << 'EOF'
+# 🤖 CCTeam Roll Call Report
+
+**実行日時**: $(date '+%Y-%m-%d %H:%M:%S %Z')
+**実行環境**: GitHub Actions
+**実行者**: ${{ github.actor }}
+**トリガー**: ${{ github.event_name }}
+
+EOF
+          
+          # 環境情報の追加（verboseモード）
+          if [ "$VERBOSE" = true ]; then
+            cat >> roll-call-result.md << 'EOF'
+## 📋 環境情報
+
+| 項目 | 値 |
+|------|----|
+| Runner OS | ${{ runner.os }} |
+| Node Version | $(node --version) |
+| Python Version | $(python3 --version) |
+| tmux Version | $(tmux -V) |
+| Repository | ${{ github.repository }} |
+| Branch | ${{ github.ref }} |
+
+EOF
+          fi
+          
+          echo "## 🎯 Agent Roll Call Results" >> roll-call-result.md
+          echo "" >> roll-call-result.md
+          
+          # 各エージェントの応答をシミュレート（詳細版）
+          echo "### 👑 BOSS (Strategic Manager)" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "Response: Hello, World!! I'm BOSS - Strategic Manager ready for duty!" >> roll-call-result.md
+          echo "Status: ✅ Active" >> roll-call-result.md
+          echo "Role: プロジェクト全体の統括・タスク分配・進捗管理" >> roll-call-result.md
+          echo "tmux: ccteam-boss:main.0" >> roll-call-result.md
+          if [ "$VERBOSE" = true ]; then
+            echo "Instructions: $(ls -la instructions/boss.md 2>/dev/null && echo 'Found' || echo 'Not found')" >> roll-call-result.md
+          fi
+          echo "\`\`\`" >> roll-call-result.md
+          echo "" >> roll-call-result.md
+          
+          echo "### 💻 Worker1 (Frontend Developer)" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "Response: Hello, World!! I'm Worker1 - Frontend Developer reporting!" >> roll-call-result.md
+          echo "Status: ✅ Active" >> roll-call-result.md
+          echo "Role: UI/UX実装・React/Next.js開発・レスポンシブデザイン" >> roll-call-result.md
+          echo "tmux: ccteam:main.0" >> roll-call-result.md
+          echo "Skills: React 18, Next.js 14, TypeScript, Tailwind CSS" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "" >> roll-call-result.md
+          
+          echo "### ⚙️ Worker2 (Backend Developer)" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "Response: Hello, World!! I'm Worker2 - Backend Developer online!" >> roll-call-result.md
+          echo "Status: ✅ Active" >> roll-call-result.md
+          echo "Role: API開発・データベース設計・サーバーサイドロジック" >> roll-call-result.md
+          echo "tmux: ccteam:main.1" >> roll-call-result.md
+          echo "Skills: Node.js, Express, FastAPI, PostgreSQL, Redis" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "" >> roll-call-result.md
+          
+          echo "### 🧪 Worker3 (QA/DevOps Engineer)" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "Response: Hello, World!! I'm Worker3 - QA Engineer ready for testing!" >> roll-call-result.md
+          echo "Status: ✅ Active" >> roll-call-result.md
+          echo "Role: テスト自動化・CI/CD構築・インフラ管理・品質保証" >> roll-call-result.md
+          echo "tmux: ccteam:main.2" >> roll-call-result.md
+          echo "Skills: Jest, Playwright, GitHub Actions, Docker, Kubernetes" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "" >> roll-call-result.md
+          
+          echo "### 🌟 Gemini (AI Strategic Advisor)" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "Response: Hello, World!! I'm Gemini - AI Strategic Advisor available!" >> roll-call-result.md
+          echo "Status: ✅ Active" >> roll-call-result.md
+          echo "Role: 調査・分析・ドキュメント作成・技術アドバイス" >> roll-call-result.md
+          echo "tmux: ccteam-boss:main.1" >> roll-call-result.md
+          echo "Capabilities: マルチモーダル分析・コード解析・アーキテクチャ設計" >> roll-call-result.md
+          echo "\`\`\`" >> roll-call-result.md
+          echo "" >> roll-call-result.md
+          
+          # ヘルスチェックセクション（オプション）
+          if [ "$HEALTH_CHECK" = true ]; then
+            cat >> roll-call-result.md << 'EOF'
+## 🏥 System Health Check
+
+### ディレクトリ構造
+\`\`\`
+EOF
+            ls -la scripts/ | head -5 >> roll-call-result.md || echo "scripts/: アクセス不可" >> roll-call-result.md
+            echo "\`\`\`" >> roll-call-result.md
+            echo "" >> roll-call-result.md
+            
+            echo "### 重要ファイルの存在確認" >> roll-call-result.md
+            echo "| ファイル | 状態 |" >> roll-call-result.md
+            echo "|----------|------|" >> roll-call-result.md
+            
+            # ファイル存在チェック
+            for file in "CLAUDE.md" "README.md" "package.json" ".mcp.json" "install.sh"; do
+              if [ -f "$file" ]; then
+                echo "| $file | ✅ 存在 |" >> roll-call-result.md
+              else
+                echo "| $file | ❌ 不在 |" >> roll-call-result.md
+              fi
+            done
+            echo "" >> roll-call-result.md
+          fi
+          
+          # 実行手順の追加
+          cat >> roll-call-result.md << 'EOF'
+## 📝 ローカル実行手順
+
+### 1. CCTeamの起動
+\`\`\`bash
+# グローバルコマンドとして実行
+ccteam
+
+# または直接スクリプトを実行
+./scripts/launch-ccteam-v3.sh
+\`\`\`
+
+### 2. Roll Callの実行
+\`\`\`bash
+# 拡張版agent-sendを使用
+./scripts/enhanced_agent_send.sh boss "Hello, World!! I'm BOSS"
+./scripts/enhanced_agent_send.sh worker1 "Hello, World!! I'm Worker1"
+./scripts/enhanced_agent_send.sh worker2 "Hello, World!! I'm Worker2"
+./scripts/enhanced_agent_send.sh worker3 "Hello, World!! I'm Worker3"
+
+# またはグローバルコマンドで
+ccsend boss "ステータスを報告してください"
+ccsend worker1 "フロントエンドの進捗は？"
+ccsend worker2 "APIの実装状況は？"
+ccsend worker3 "テストカバレッジは？"
+\`\`\`
+
+### 3. リアルタイム監視
+\`\`\`bash
+# CCTeamモニターを起動
+ccmon
+
+# または通信ログを監視
+tail -f logs/communication.log
+\`\`\`
+
+---
+
+**Note**: このレポートはGitHub Actions環境でのシミュレーションです。実際のCCTeamエージェントとの通信には、ローカル環境またはDevContainerでの実行が必要です。
+
+*Generated at: $(date -u)*
+EOF
+          
+      - name: Post roll call results
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('roll-call-result.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: report
+            });
+            
+      - name: Upload roll call report
+        uses: actions/upload-artifact@v3
+        with:
+          name: roll-call-report
+          path: roll-call-result.md

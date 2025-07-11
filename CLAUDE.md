@@ -51,6 +51,9 @@ npm run lint                      # リント実行
 ./tests/quick_health_check.sh     # クイックチェック
 ./tests/system_health_check.sh    # システム健全性確認
 ./tests/integration_test.sh       # 統合テスト
+
+# コマンド一覧の参照
+# 全てのコマンドの詳細は COMMANDS.md を参照
 ```
 
 ## Code Style
