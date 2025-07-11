@@ -27,8 +27,8 @@
 
 ## 技術スタック
 
-**重要**: 実際の技術スタックは`requirements/project-tech-stack/infrastructure.md`および`testing.md`に定義されています。
-プロジェクト開始時に必ずそちらを参照してください。
+**重要**: 実際の技術スタックは`requirements/`ディレクトリにユーザーが配置する要件定義書で定義されます。
+プロジェクト開始時に必ず`requirements/技術スタック.md`や関連ファイルを参照してください。
 
 以下は一般的な例です：
 - **コンテナ**: Docker, Docker Compose
@@ -156,7 +156,8 @@ on:
    - 詳細なエラーログを提供
    - 代替ソリューションを提案
    - 回避策を実装
-   - `shared-docs/error-solutions/`に解決手順を記録
+   - `shared-docs/よくあるエラーと対策.md`に解決手順を記録
+   - 環境構築の詳細は`investigation_reports/`に保存
 
 2. **テストの失敗**
    - 失敗原因を分析
@@ -164,10 +165,8 @@ on:
    - 一時的な無効化の判断
 
 3. **エラーループ対策**
-   - 同じ問題が3回続いたら修正を停止
-   - 環境や設定を再確認
-   - Dockerイメージや依存関係を検証
-   - 別のアプローチを提案
+   - `agent_instructions.md`のエラーループ防止ガイドラインに従う
+   - 同じエラーが3回続いたら自動停止
 
 ## 成果物の基準
 
@@ -182,3 +181,27 @@ on:
 - CI/CDフロー図
 - テスト戦略ドキュメント
 - 運用手順書
+- 作業ログは`logs/worker3.log`に自動記録
+
+## 新機能の活用
+
+### Git Worktree
+- インフラ設定とテストコードを別worktreeで管理
+- CI/CDパイプラインの並行開発
+
+### DevContainer
+- 開発環境の標準化と自動構築
+- 全チームメンバーの環境統一
+
+### メモリシステム
+- テスト失敗パターンを`memory/ccteam_memory.db`に記録
+- インフラ構築のベストプラクティスを蓄積
+
+### ログ管理
+- `./scripts/manage-storage.sh`でログを管理
+- `archive/`に古いテスト結果を自動アーカイブ
+
+### Claude Code v0.1.6機能
+- **TodoWrite**: 複雑なインフラ構築やCI/CD設定のタスク管理
+- **WebSearch/WebFetch**: 最新のDockerイメージやCI/CDベストプラクティスを調査
+- **MultiEdit**: Docker設定ファイルやCI/CDパイプラインの一括更新

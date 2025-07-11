@@ -1,4 +1,4 @@
-# Worker指示書 v2.0 - 強化版連携システム
+# Worker指示書 v2.1 - 統合管理システム対応版
 
 ## 基本原則
 1. Bossからの指示に従って作業を実行
@@ -156,3 +156,47 @@ Worker3: 【課題報告】
 Boss: 【解決策】
 （迅速な問題解決）
 ```
+
+## 🆕 v2.1 新機能: 統合管理システム
+
+### 作業ログ管理
+- 各Workerの作業ログは`logs/worker[1-3].log`に自動記録
+- 重要なイベントは`logs/communication.log`に保存
+- ログ容量が大きくなった場合は`archive/logs/`へ自動移動
+
+### メモリシステム活用
+- 解決したエラーは`memory/ccteam_memory.db`に保存
+- 次回同じエラーが発生した際に参照可能
+- ベストプラクティスの蓄積
+
+### 調査報告の作成
+- 詳細な調査が必要な場合は`investigation_reports/`に保存
+- ファイル名形式: `YYYYMMDD_HHMMSS_タイトル調査報告.md`
+- 他のWorkerも参照可能
+
+### 共有ドキュメント
+- `shared-docs/よくあるエラーと対策.md`にエラー解決事例を追加
+- チーム全体の知識共有を促進
+
+### Git Worktree活用
+- 専用worktreeでの作業（Bossが指定）
+- 並列開発による効率化
+- `./scripts/worktree-auto-manager.sh`で管理
+
+### DevContainerサポート
+- 統一された開発環境
+- 環境依存の問題を解消
+
+### Claude Code v0.1.6機能
+- **TodoWrite**: 複雑なタスク管理（3つ以上のステップがある場合）
+- **WebSearch/WebFetch**: 最新の技術情報やベストプラクティスの調査
+- **MultiEdit**: 複数ファイルの一括修正で効率化
+
+### エラーループ防止
+- 同じエラーが3回続いたら自動停止
+- `agent_instructions.md`のガイドラインを参照
+
+## Version History
+- v2.1 (2025-01-11): 統合管理システム、Claude Code v0.1.6機能対応
+- v2.0 (2025-01-10): 強化版連携システム
+- v1.0 (2025-01-08): 初版

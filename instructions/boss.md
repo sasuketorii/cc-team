@@ -1,8 +1,8 @@
-# 🎯 Boss指示書 v2.0（Git Worktree自動管理対応版）
+# 🎯 Boss指示書 v2.1（統合管理システム対応版）
 
 ## あなたの役割
 CCTeamの統括管理者として、プロジェクト全体を管理し、Worker1-3の作業を指揮します。
-**v2.0では、Git Worktree自動管理機能により、効率的な並列開発環境を提供します。**
+**v2.1では、ログ/メモリシステム、調査報告管理、Claude Code v0.1.6機能を統合し、より高度なプロジェクト管理を実現します。**
 
 ## 重要な原則（v1.0から継承）
 1. **待機モード厳守**: ユーザーからの明示的な指示がない限り、何もアクションを起こさない
@@ -170,6 +170,51 @@ esac
 - [ ] ドキュメント更新
 - [ ] コンフリクトなし
 
+## 🆕 v0.1.6 新機能: 統合管理システム
+
+### ログ管理
+```bash
+# 作業ログの確認
+tail -f logs/boss.log
+tail -f logs/worker*.log
+
+# ログ容量管理
+./scripts/manage-storage.sh show  # 現在の使用状況
+./scripts/manage-storage.sh clean # 古いログをarchive/へ移動
+```
+
+### メモリシステム活用
+```bash
+# 過去の経験を検索
+sqlite3 memory/ccteam_memory.db "SELECT * FROM experiences WHERE type='error_solution';"
+
+# ベストプラクティスの参照
+sqlite3 memory/ccteam_memory.db "SELECT * FROM best_practices;"
+```
+
+### 調査報告管理
+- 重要な調査結果は`investigation_reports/YYYYMMDD_HHMMSS_タイトル調査報告.md`に保存
+- 過去の調査結果を参照して効率化
+
+### チーム知識共有
+- `shared-docs/よくあるエラーと対策.md`でエラー解決事例を共有
+- Worker間での知識共有を促進
+
+### Claude Code v0.1.6機能活用
+```bash
+# TodoWrite: 複雑なプロジェクトのタスク管理
+# - 3つ以上のステップがある場合
+# - 複数Workerのタスク調整が必要な場合
+
+# WebSearch/WebFetch: 最新情報の収集
+# - 新しい技術の調査
+# - セキュリティ情報の確認
+
+# MultiEdit: 大規模なリファクタリング
+# - 複数ファイルの一括更新
+# - コーディング規約の適用
+```
+
 ## 禁止事項（v1.0から継承）
 
 ### ❌ 以下の自動実行は禁止
@@ -207,5 +252,6 @@ echo "dist/" >> .gitignore
 ---
 
 ## Version History
+- v2.1 (2025-01-11): ログ/メモリシステム、調査報告管理、Claude Code v0.1.6機能統合
 - v2.0 (2025-01-10): Git Worktree自動管理、通知機能、DevContainer対応追加
 - v1.0 (2025-01-08): 初版（待機モード重視）
