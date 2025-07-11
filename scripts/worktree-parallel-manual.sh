@@ -408,7 +408,8 @@ case "${1:-help}" in
         ;;
     "create")
         if [[ -z "${2:-}" ]]; then
-            echo -e "${RED}エラー: ブランチ名を指定してください${NC}"
+            echo -e "${RED}❌ エラー: ブランチ名が指定されていません${NC}"
+            echo -e "${YELLOW}   使用例: $0 create feature/new-ui [worker名]${NC}"
             exit 1
         fi
         create_worktree "$2" "${3:-}"
@@ -418,7 +419,8 @@ case "${1:-help}" in
         ;;
     "switch")
         if [[ -z "${2:-}" ]] || [[ -z "${3:-}" ]]; then
-            echo -e "${RED}エラー: worker名とブランチ名を指定してください${NC}"
+            echo -e "${RED}❌ エラー: worker名とブランチ名が指定されていません${NC}"
+            echo -e "${YELLOW}   使用例: $0 switch worker1 feature/new-ui${NC}"
             exit 1
         fi
         switch_worker "$2" "$3"
@@ -428,7 +430,8 @@ case "${1:-help}" in
         ;;
     "remove")
         if [[ -z "${2:-}" ]]; then
-            echo -e "${RED}エラー: ブランチ名を指定してください${NC}"
+            echo -e "${RED}❌ エラー: 削除するブランチ名が指定されていません${NC}"
+            echo -e "${YELLOW}   使用例: $0 remove feature/old-ui${NC}"
             exit 1
         fi
         remove_worktree "$2"

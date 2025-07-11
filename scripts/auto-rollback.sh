@@ -3,11 +3,8 @@
 
 set -e
 
-# カラー定義
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# カラー定義を共通ファイルから読み込み
+source "$(dirname "${BASH_SOURCE[0]}")/common/colors.sh"
 
 # 設定
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:3000/health}"
@@ -109,7 +106,8 @@ monitor_deployment() {
             local error_rate=$(monitor_error_rate)
             
             if [ "$error_rate" -ge "$ROLLBACK_THRESHOLD" ]; then
-                echo -e "${RED}Error rate critical: ${error_rate}%${NC}"
+                echo -e "${RED}⚠️  緊急: エラー率が危険レベル（${error_rate}%）に達しました${NC}"
+                echo -e "${YELLOW}   → 自動的に前のバージョンに戻します...${NC}"
                 perform_rollback
                 break
             elif [ "$error_rate" -ge "$MAX_ERROR_RATE" ]; then
@@ -174,12 +172,17 @@ case "$1" in
         github_deployment_protection
         ;;
     *)
-        echo "Usage: $0 {monitor|canary|rollback|protect}"
+        echo "📋 使用方法: $0 <コマンド>"
         echo ""
-        echo "Commands:"
-        echo "  monitor  - Start continuous monitoring"
-        echo "  canary   - Deploy with canary strategy"
-        echo "  rollback - Manually trigger rollback"
+        echo "利用可能なコマンド:"
+        echo "  monitor  - 継続的な監視を開始（エラー率を自動チェック）"
+        echo "  canary   - カナリアデプロイを実行（段階的リリース）"
+        echo "  rollback - 手動でロールバックを実行（前のバージョンに戻す）"
+        echo "  protect  - GitHub デプロイメント保護を有効化"
+        echo ""
+        echo "使用例:"
+        echo "  $0 monitor    # エラー率を監視し、閾値を超えたら自動ロールバック"
+        echo "  $0 canary     # 10%のトラフィックから段階的にデプロイ"
         echo "  protect  - GitHub deployment protection"
         exit 1
         ;;

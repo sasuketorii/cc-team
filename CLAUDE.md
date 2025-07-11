@@ -3,7 +3,73 @@
 ## 概要
 CCTeamはClaude Code AIエージェントによる統合Boss + 3 Workers構成の開発チームです。tmuxを使用して単一セッションで全エージェントを管理し、効率的な並列開発を実現します。
 
-## エージェント構成（統合アーキテクチャ）
+## Tech Stack
+- **Framework**: Node.js + TypeScript
+- **Frontend**: React 18 + Next.js 14 + Tailwind CSS
+- **Backend**: Express + FastAPI
+- **Database**: PostgreSQL + Redis
+- **Testing**: Jest + React Testing Library + Playwright
+- **CI/CD**: GitHub Actions + Docker
+- **Tools**: tmux, Git Worktree, Claude Code
+
+## Project Structure
+```
+CCTeam/
+├── .claude/              # Claude Code設定
+│   ├── commands/         # カスタムスラッシュコマンド
+│   ├── shared/           # チーム共有ナレッジ
+│   └── logs/             # 実行ログ
+├── scripts/              # 実行スクリプト
+├── instructions/         # エージェント指示書
+├── requirements/         # プロジェクト要件
+├── worktrees/            # Git worktree並列開発
+│   ├── frontend/         # フロントエンドブランチ
+│   ├── backend/          # バックエンドブランチ
+│   └── database/         # データベースブランチ
+├── tests/                # テストスクリプト
+├── memory/               # AIメモリシステム
+└── reports/              # 各種レポート
+```
+
+## Commands
+```bash
+# プロジェクトセットアップ
+./scripts/setup.sh                 # 初期環境構築
+
+# CCTeam管理
+ccteam                            # CCTeam起動
+./scripts/project-status.sh       # プロジェクト状況確認
+./scripts/agent-send.sh [agent]   # エージェントへ指示送信
+
+# 開発コマンド
+npm run dev                       # 開発サーバー起動
+npm run build                     # ビルド実行
+npm test                          # テスト実行
+npm run lint                      # リント実行
+
+# テストスクリプト
+./tests/quick_health_check.sh     # クイックチェック
+./tests/system_health_check.sh    # システム健全性確認
+./tests/integration_test.sh       # 統合テスト
+```
+
+## Code Style
+- **JavaScript/TypeScript**: ESモジュールを使用
+- **React**: 関数コンポーネント + Hooksを推奨
+- **命名規則**: camelCase（変数・関数）、PascalCase（コンポーネント）
+- **インポート**: 分割代入を使用
+- **スタイルガイド**: Airbnb JavaScript Style Guide準拠
+
+## Repository Etiquette
+- **ブランチ名**: feature/TICKET-123-description
+- **コミットフォーマット**: type(scope): 説明 (日本語可)
+- **PRルール**: 必ずコードレビューを実施
+- **マージ戦略**: Squash and Mergeを使用
+- **テスト**: マージ前に必ずテストを実行
+
+## CCTeam Specific Rules
+
+### エージェント構成（統合アーキテクチャ）
 - **BOSS** (統合版): 全体管理・Worker直接制御
 - **Worker1**: フロントエンド開発
 - **Worker2**: バックエンド開発
@@ -166,6 +232,13 @@ npm run lint
 # 開発サーバー
 npm run dev
 ```
+
+### Do Not
+- 本番ブランチを直接編集しない
+- コードレビューをスキップしない
+- テストを実行せずにコミットしない
+- .claude/shared/を無視した独立作業をしない
+- エラーログを無視して進めない
 
 ## ドキュメント管理
 

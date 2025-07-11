@@ -136,7 +136,9 @@ rollback_version() {
     
     # バージョンが存在するか確認
     if ! git rev-parse "$target_version" &> /dev/null; then
-        echo -e "${RED}Error: Version $target_version not found${NC}"
+        echo -e "${RED}❌ エラー: バージョン '$target_version' が見つかりません${NC}"
+        echo -e "${YELLOW}   利用可能なバージョンを確認するには以下を実行してください:${NC}"
+        echo -e "${YELLOW}   $0 list${NC}"
         return 1
     fi
     
@@ -218,23 +220,30 @@ case "$1" in
         echo "v$(get_current_version)"
         ;;
     *)
-        echo "CCTeam Version Manager"
-        echo "====================="
+        echo "🏷️  CCTeam バージョン管理システム"
+        echo "================================"
         echo ""
-        echo "Usage: $0 {bump|major|minor|patch|rollback|history|current} [args]"
+        echo "📋 使用方法: $0 <コマンド> [引数]"
         echo ""
-        echo "Commands:"
-        echo "  bump [message]     - Increment patch version (0.0.1)"
-        echo "  major [message]    - Increment major version (1.0.0)"
-        echo "  minor [message]    - Increment minor version (0.1.0)"
-        echo "  patch [message]    - Same as bump"
-        echo "  rollback [version] - Rollback to specific version"
-        echo "  history            - Show version history"
-        echo "  current            - Show current version"
+        echo "利用可能なコマンド:"
+        echo "  bump [メッセージ]     - パッチバージョンを上げる (0.0.1 → 0.0.2)"
+        echo "  major [メッセージ]    - メジャーバージョンを上げる (0.9.0 → 1.0.0)"
+        echo "  minor [メッセージ]    - マイナーバージョンを上げる (0.0.9 → 0.1.0)"
+        echo "  patch [メッセージ]    - bumpと同じ（パッチ更新）"
+        echo "  rollback [バージョン] - 指定バージョンに戻す"
+        echo "  history              - バージョン履歴を表示"
+        echo "  current              - 現在のバージョンを表示"
         echo ""
-        echo "Examples:"
-        echo "  $0 bump \"Fix login bug\"     # 0.0.1 → 0.0.2"
-        echo "  $0 minor \"Add new feature\"  # 0.0.2 → 0.1.0"
+        echo "バージョン番号の意味:"
+        echo "  メジャー.マイナー.パッチ (例: 1.2.3)"
+        echo "  • メジャー: 大きな変更、後方互換性なし"
+        echo "  • マイナー: 新機能追加、後方互換性あり"
+        echo "  • パッチ: バグ修正、小さな改善"
+        echo ""
+        echo "使用例:"
+        echo "  $0 bump \"ログイン画面のバグ修正\"     # 0.0.1 → 0.0.2"
+        echo "  $0 minor \"ユーザー管理機能を追加\"    # 0.0.2 → 0.1.0"
+        echo "  $0 rollback v0.0.1               # v0.0.1に戻す"
         echo "  $0 rollback v0.0.1          # Go back to v0.0.1"
         ;;
 esac

@@ -27,7 +27,9 @@ safe_delete() {
     local trash_name="${timestamp}_${basename}"
     
     if [ ! -e "$file" ]; then
-        echo -e "${RED}Error: File not found: $file${NC}"
+        echo -e "${RED}❌ エラー: ファイルが見つかりません: $file${NC}"
+        echo -e "${YELLOW}   → ファイルパスを確認してください${NC}"
+        echo -e "${YELLOW}   → 現在のディレクトリ: $(pwd)${NC}"
         return 1
     fi
     
@@ -194,22 +196,24 @@ case "$1" in
         create_aliases
         ;;
     *)
-        echo "CCTeam Safe Delete System"
+        echo "🗑️  CCTeam 安全削除システム"
         echo "========================="
         echo ""
-        echo "Usage: $0 {delete|restore|list|empty|clean|setup} [args]"
+        echo "📋 使用方法: $0 <コマンド> [引数]"
         echo ""
-        echo "Commands:"
-        echo "  delete <files>    - Safely delete files to trash"
-        echo "  restore <name>    - Restore file from trash"
-        echo "  list             - List trash contents"
-        echo "  empty            - Empty trash (permanent delete)"
-        echo "  clean [days]     - Auto-clean files older than N days"
-        echo "  setup            - Create shell aliases"
+        echo "利用可能なコマンド:"
+        echo "  delete <ファイル>  - ファイルをゴミ箱に移動（安全に削除）"
+        echo "  restore <名前>     - ゴミ箱からファイルを復元"
+        echo "  list              - ゴミ箱の内容を表示"
+        echo "  empty             - ゴミ箱を空にする（⚠️  完全削除・復元不可）"
+        echo "  clean [日数]       - 指定日数より古いファイルを自動削除"
+        echo "  setup             - シェルエイリアスを作成"
         echo ""
-        echo "Examples:"
-        echo "  $0 delete file.txt"
-        echo "  $0 restore file.txt"
-        echo "  $0 clean 7        # Clean files older than 7 days"
+        echo "使用例:"
+        echo "  $0 delete file.txt      # file.txtをゴミ箱へ移動"
+        echo "  $0 restore file.txt     # file.txtを元の場所に復元"
+        echo "  $0 clean 7              # 7日以上前のファイルを削除"
+        echo ""
+        echo "⚠️  注意: 'empty'コマンドは復元できません！慎重に使用してください。"
         ;;
 esac

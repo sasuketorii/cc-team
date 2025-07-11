@@ -3,12 +3,8 @@
 # Error Analysis Script
 # エラーログを分析し、パターンを検出します
 
-# カラー定義
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+# 共通カラー定義を読み込み
+source "$(dirname "${BASH_SOURCE[0]}")/common/colors.sh"
 
 echo "🔍 CCTeam エラー分析を実行しています..."
 echo ""
@@ -36,7 +32,7 @@ declare -A ERROR_TYPES
 TOTAL_ERRORS=0
 
 # 各ログファイルからエラーを抽出
-echo "${CYAN}【エラー検出】${NC}"
+echo -e "${CYAN}【エラー検出】${NC}"
 for logfile in logs/*.log; do
     if [ -f "$logfile" ]; then
         filename=$(basename "$logfile")
@@ -57,7 +53,7 @@ for logfile in logs/*.log; do
         ERROR_COUNT=$(echo "$ERRORS" | grep -c . || true)
         
         if [ $ERROR_COUNT -gt 0 ]; then
-            echo "${RED}$filename${NC}: $ERROR_COUNT エラー"
+            echo -e "${RED}$filename${NC}: $ERROR_COUNT エラー"
             ERROR_COUNTS[$filename]=$ERROR_COUNT
             TOTAL_ERRORS=$((TOTAL_ERRORS + ERROR_COUNT))
             
@@ -82,11 +78,11 @@ for logfile in logs/*.log; do
 done
 
 if [ $TOTAL_ERRORS -eq 0 ]; then
-    echo "${GREEN}✅ エラーは検出されませんでした${NC}"
+    echo -e "${GREEN}✅ エラーは検出されませんでした${NC}"
 else
     # エラータイプ別統計
     echo ""
-    echo "${CYAN}【エラータイプ分析】${NC}"
+    echo -e "${CYAN}【エラータイプ分析】${NC}"
     for error_type in "${!ERROR_TYPES[@]}"; do
         count=${ERROR_TYPES[$error_type]}
         percentage=$((count * 100 / TOTAL_ERRORS))
@@ -115,7 +111,7 @@ fi
 
 # 最も問題のあるエージェントを特定
 echo ""
-echo "${CYAN}【エージェント別分析】${NC}"
+echo -e "${CYAN}【エージェント別分析】${NC}"
 if [ ${#ERROR_COUNTS[@]} -gt 0 ]; then
     MAX_ERRORS=0
     PROBLEMATIC_AGENT=""
@@ -127,12 +123,12 @@ if [ ${#ERROR_COUNTS[@]} -gt 0 ]; then
         fi
     done
     
-    echo "${YELLOW}⚠️  最も問題のあるログ: $PROBLEMATIC_AGENT ($MAX_ERRORS エラー)${NC}"
+    echo -e "${YELLOW}⚠️  最も問題のあるログ: $PROBLEMATIC_AGENT ($MAX_ERRORS エラー)${NC}"
 fi
 
 # 推奨アクション
 echo ""
-echo "${CYAN}【推奨アクション】${NC}"
+echo -e "${CYAN}【推奨アクション】${NC}"
 
 if [ $TOTAL_ERRORS -eq 0 ]; then
     echo "👍 システムは正常に動作しています"
@@ -160,7 +156,7 @@ else
     
     echo ""
     echo "詳細なエラー内容を確認するには:"
-    echo "${GREEN}grep -i 'error' logs/*.log | less${NC}"
+    echo -e "${GREEN}grep -i 'error' logs/*.log | less${NC}"
 fi
 
 # エラーパターンをJSONファイルに保存

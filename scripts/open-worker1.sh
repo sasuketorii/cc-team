@@ -12,8 +12,12 @@ echo "🎯 Worker1（フロントエンド）ペインに接続します..."
 
 # tmuxセッションの存在確認
 if ! tmux has-session -t ccteam 2>/dev/null; then
-    echo "⚠️  CCTeamセッションが見つかりません"
-    echo "先に ./scripts/launch-ccteam.sh を実行してください"
+    echo "❌ エラー: CCTeamが起動していません"
+    echo ""
+    echo "📝 CCTeamを起動するには以下のコマンドを実行してください:"
+    echo "   ccteam"
+    echo "   または"
+    echo "   ./scripts/launch-ccteam.sh"
     exit 1
 fi
 

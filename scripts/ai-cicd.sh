@@ -3,11 +3,8 @@
 
 set -e
 
-# カラー定義
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# 共通カラー定義を読み込み
+source "$(dirname "${BASH_SOURCE[0]}")/common/colors.sh"
 
 # 関数: ワークフロー実行と監視
 run_workflow() {
@@ -102,11 +99,20 @@ case "$1" in
         gemini_research "$2" "$3"
         ;;
     *)
-        echo "Usage: $0 {test|build|deploy|check|merge|research} [args]"
+        echo "📋 使用方法: $0 <コマンド> [引数]"
         echo ""
-        echo "Examples:"
-        echo "  $0 test feature/new-feature    # Run tests on branch"
-        echo "  $0 check 123                   # Check PR #123"
+        echo "利用可能なコマンド:"
+        echo "  test     - ブランチのテストを実行"
+        echo "  build    - プロジェクトをビルド"
+        echo "  deploy   - デプロイを実行"
+        echo "  check    - プルリクエストの品質チェック"
+        echo "  merge    - プルリクエストをマージ"
+        echo "  research - AIによる調査を実行"
+        echo ""
+        echo "使用例:"
+        echo "  $0 test feature/new-feature    # 指定ブランチでテスト実行"
+        echo "  $0 check 123                   # PR #123 の品質チェック"
+        echo "  $0 research \"エラー対処法\" \"このエラーの解決方法を調査\""
         echo "  $0 merge 123                   # Auto-merge PR #123"
         echo "  $0 research 'React best practices'"
         exit 1

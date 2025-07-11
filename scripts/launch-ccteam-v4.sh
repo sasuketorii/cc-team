@@ -7,14 +7,8 @@ SCRIPT_NAME=$(basename "$0")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# カラー定義
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+# 共通カラー定義を読み込み
+source "$SCRIPT_DIR/common/colors.sh"
 
 # ログファイル
 LOG_FILE="$PROJECT_ROOT/logs/ccteam-launch.log"
@@ -27,7 +21,9 @@ trap 'error_handler $? $LINENO' ERR
 error_handler() {
     local exit_code=$1
     local line_no=$2
-    echo -e "${RED}❌ エラーが発生しました (終了コード: $exit_code, 行: $line_no)${NC}" | tee -a "$LOG_FILE"
+    echo -e "${RED}❌ エラーが発生しました${NC}" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}   詳細: 処理中にエラーが発生しました${NC}" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}   対処: ログファイルを確認してください: $LOG_FILE${NC}" | tee -a "$LOG_FILE"
     cleanup
     exit $exit_code
 }

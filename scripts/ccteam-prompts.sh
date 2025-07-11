@@ -3,12 +3,8 @@
 # CCTeam Prompt Templates
 # よく使うプロンプトのテンプレート集
 
-# カラー定義
-GREEN=$'\033[0;32m'
-BLUE=$'\033[0;34m'
-YELLOW=$'\033[0;33m'
-CYAN=$'\033[0;36m'
-NC=$'\033[0m'
+# 共通カラー定義を読み込み
+source "$(dirname "${BASH_SOURCE[0]}")/common/colors.sh"
 
 echo "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo "${CYAN}📝 CCTeam プロンプトテンプレート${NC}"

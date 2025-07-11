@@ -5,27 +5,21 @@
 
 set -e
 
-# カラー定義
-RED=$'\033[0;31m'
-GREEN=$'\033[0;32m'
-BLUE=$'\033[0;34m'
-YELLOW=$'\033[0;33m'
-PURPLE=$'\033[0;35m'
-CYAN=$'\033[0;36m'
-NC=$'\033[0m'
+# カラー定義を共通ファイルから読み込み
+source "$(dirname "${BASH_SOURCE[0]}")/common/colors.sh"
 
 clear
 
-echo "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo "${CYAN}🎯 CCTeam ガイド付き起動${NC}"
-echo "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${CYAN}🎯 CCTeam ガイド付き起動${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "このガイドに従って、CCTeamを起動します。"
 echo "各ステップで詳しい説明を表示します。"
 echo ""
 
 # Step 1: 環境確認
-echo "${BLUE}━━━ Step 1/5: 環境確認 ━━━${NC}"
+echo -e "${BLUE}━━━ Step 1/5: 環境確認 ━━━${NC}"
 echo ""
 echo "必要なツールがインストールされているか確認します..."
 echo ""
@@ -50,11 +44,12 @@ else
 fi
 
 echo ""
-read -p "続行するには${GREEN}Enter${NC}キーを押してください..."
+echo -e "続行するには${GREEN}Enter${NC}キーを押してください..."
+read -p ""
 
 # Step 2: tmuxセッション作成
 clear
-echo "${BLUE}━━━ Step 2/5: tmuxセッション作成 ━━━${NC}"
+echo -e "${BLUE}━━━ Step 2/5: tmuxセッション作成 ━━━${NC}"
 echo ""
 echo "CCTeam用のtmuxセッションを作成します。"
 echo "これにより、複数のAIエージェントを同時に管理できます。"
@@ -78,11 +73,12 @@ echo "セッションを作成中..."
 echo "✅ tmuxセッション作成完了"
 
 echo ""
-read -p "続行するには${GREEN}Enter${NC}キーを押してください..."
+echo -e "続行するには${GREEN}Enter${NC}キーを押してください..."
+read -p ""
 
 # Step 3: Claude起動
 clear
-echo "${BLUE}━━━ Step 3/5: Claude起動 ━━━${NC}"
+echo -e "${BLUE}━━━ Step 3/5: Claude起動 ━━━${NC}"
 echo ""
 echo "各エージェントでClaude CLIを起動します。"
 echo "起動後、認証画面が表示されます。"
@@ -100,66 +96,68 @@ tmux send-keys -t ccteam-workers:main.2 "claude" C-m
 echo ""
 echo "✅ Claude起動完了"
 echo ""
-echo "${YELLOW}重要: 次のステップで認証を行います${NC}"
+echo -e "${YELLOW}重要: 次のステップで認証を行います${NC}"
 echo ""
-read -p "続行するには${GREEN}Enter${NC}キーを押してください..."
+echo -e "続行するには${GREEN}Enter${NC}キーを押してください..."
+read -p ""
 
 # Step 4: 認証ガイド
 clear
-echo "${BLUE}━━━ Step 4/5: 認証作業 ━━━${NC}"
+echo -e "${BLUE}━━━ Step 4/5: 認証作業 ━━━${NC}"
 echo ""
 echo "各エージェントで認証を行います。"
-echo "${YELLOW}新しいターミナルウィンドウ${NC}で以下を実行してください："
+echo -e "${YELLOW}新しいターミナルウィンドウ${NC}で以下を実行してください："
 echo ""
-echo "${GREEN}─────────────────────────────────────────${NC}"
+echo -e "${GREEN}─────────────────────────────────────────${NC}"
 echo ""
 echo "1️⃣ Bossの認証:"
-echo "   ${CYAN}tmux attach -t ccteam-boss${NC}"
+echo -e "   ${CYAN}tmux attach -t ccteam-boss${NC}"
 echo ""
-echo "   → Bypass Permissions画面で '${YELLOW}2${NC}' を入力してEnter"
-echo "   → 認証後、${YELLOW}Ctrl+b → d${NC} でデタッチ"
+echo -e "   → Bypass Permissions画面で '${YELLOW}2${NC}' を入力してEnter"
+echo -e "   → 認証後、${YELLOW}Ctrl+b → d${NC} でデタッチ"
 echo ""
-echo "${GREEN}─────────────────────────────────────────${NC}"
+echo -e "${GREEN}─────────────────────────────────────────${NC}"
 echo ""
 echo "2️⃣ Workersの認証:"
-echo "   ${CYAN}tmux attach -t ccteam-workers${NC}"
+echo -e "   ${CYAN}tmux attach -t ccteam-workers${NC}"
 echo ""
-echo "   → 各ペインで '${YELLOW}2${NC}' を入力してEnter"
-echo "   → ペイン切り替え: ${YELLOW}Ctrl+b → 矢印キー${NC}"
-echo "   → 全Worker認証後、${YELLOW}Ctrl+b → d${NC} でデタッチ"
+echo -e "   → 各ペインで '${YELLOW}2${NC}' を入力してEnter"
+echo -e "   → ペイン切り替え: ${YELLOW}Ctrl+b → 矢印キー${NC}"
+echo -e "   → 全Worker認証後、${YELLOW}Ctrl+b → d${NC} でデタッチ"
 echo ""
-echo "${GREEN}─────────────────────────────────────────${NC}"
+echo -e "${GREEN}─────────────────────────────────────────${NC}"
 echo ""
-read -p "認証が${YELLOW}完了したら${NC}、${GREEN}Enter${NC}キーを押してください..."
+echo -e "認証が${YELLOW}完了したら${NC}、${GREEN}Enter${NC}キーを押してください..."
+read -p ""
 
 # Step 5: 初期プロンプト
 clear
-echo "${BLUE}━━━ Step 5/5: 初期プロンプト入力 ━━━${NC}"
+echo -e "${BLUE}━━━ Step 5/5: 初期プロンプト入力 ━━━${NC}"
 echo ""
 echo "認証が完了しました！"
 echo "次は、Bossに初期指示を与えます。"
 echo ""
-echo "${GREEN}─────────────────────────────────────────${NC}"
+echo -e "${GREEN}─────────────────────────────────────────${NC}"
 echo ""
 echo "Bossセッションに再接続:"
-echo "   ${CYAN}tmux attach -t ccteam-boss${NC}"
+echo -e "   ${CYAN}tmux attach -t ccteam-boss${NC}"
 echo ""
 echo "推奨プロンプト例:"
 echo ""
-echo "1. ${YELLOW}\"requirementsフォルダの要件を読み込み、役割分担して開発を開始してください\"${NC}"
+echo -e "1. ${YELLOW}\"requirementsフォルダの要件を読み込み、役割分担して開発を開始してください\"${NC}"
 echo ""
-echo "2. ${YELLOW}\"全Worker点呼: 各自の役割と準備状況を報告してください\"${NC}"
+echo -e "2. ${YELLOW}\"全Worker点呼: 各自の役割と準備状況を報告してください\"${NC}"
 echo ""
-echo "3. ${YELLOW}\"requirements/README.mdを分析して、各Workerにタスクを割り当ててください\"${NC}"
+echo -e "3. ${YELLOW}\"requirements/README.mdを分析して、各Workerにタスクを割り当ててください\"${NC}"
 echo ""
-echo "${GREEN}─────────────────────────────────────────${NC}"
+echo -e "${GREEN}─────────────────────────────────────────${NC}"
 echo ""
-echo "✅ ${GREEN}セットアップ完了！${NC}"
+echo -e "✅ ${GREEN}セットアップ完了！${NC}"
 echo ""
 echo "📝 便利なコマンド:"
-echo "   ${CYAN}tmux ls${NC}              - セッション一覧"
-echo "   ${CYAN}tmux attach -t [名前]${NC} - セッションに接続"
-echo "   ${CYAN}Ctrl+b → s${NC}           - セッション切り替え"
-echo "   ${CYAN}Ctrl+b → d${NC}           - デタッチ"
+echo -e "   ${CYAN}tmux ls${NC}              - セッション一覧"
+echo -e "   ${CYAN}tmux attach -t [名前]${NC} - セッションに接続"
+echo -e "   ${CYAN}Ctrl+b → s${NC}           - セッション切り替え"
+echo -e "   ${CYAN}Ctrl+b → d${NC}           - デタッチ"
 echo ""
-echo "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

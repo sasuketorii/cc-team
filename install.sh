@@ -5,12 +5,8 @@
 
 set -e
 
-# カラー定義
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+# カラー定義を共通ファイルから読み込み
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/common/colors.sh"
 
 VERSION="0.1.5"
 

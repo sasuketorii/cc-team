@@ -100,6 +100,15 @@ case "${1:-assign}" in
         generate_proxy_config
         ;;
     *)
-        echo "使用方法: port-manager.sh [assign|list|proxy]"
+        echo "📋 使用方法: $0 <コマンド>"
+        echo ""
+        echo "利用可能なコマンド:"
+        echo "  assign - ワーカーにポートを自動割り当て"
+        echo "  list   - 現在のポート割り当てを表示"
+        echo "  proxy  - プロキシ設定を生成"
+        echo ""
+        echo "使用例:"
+        echo "  $0 assign   # 各ワーカーに異なるポートを割り当て"
+        echo "  $0 list     # 割り当て済みポートの一覧表示"
         ;;
 esac

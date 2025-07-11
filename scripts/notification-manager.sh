@@ -13,12 +13,8 @@ if [ -f "$SCRIPT_DIR/security-utils.sh" ]; then
     source "$SCRIPT_DIR/security-utils.sh"
 fi
 
-# カラー定義
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# 共通カラー定義を読み込み
+source "$SCRIPT_DIR/common/colors.sh"
 
 # 通知タイプ定義
 NOTIFY_SUCCESS="task_complete"
@@ -445,19 +441,14 @@ test_notifications() {
     echo ""
     
     notify_info "通知システムのテストを開始します"
-    sleep 1
     
     notify_task_complete "テストタスクが正常に完了しました"
-    sleep 1
     
     notify_warning "これは警告通知のテストです"
-    sleep 1
     
     notify_error "エラー通知のテスト（実際のエラーではありません）"
-    sleep 1
     
     notify_approval_needed "承認通知のテスト - アクションは不要です"
-    sleep 1
     
     batch_notifications "バッチ通知テスト" \
         "複数のメッセージを" \
@@ -482,8 +473,9 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             show_help
             ;;
         *)
-            echo -e "${RED}エラー: 不明なコマンド '$1'${NC}"
-            show_help
+            echo -e "${RED}❌ エラー: 不明なコマンドです: '$1'${NC}"
+            echo -e "${YELLOW}   利用可能なコマンド: test, setup, help${NC}"
+            echo -e "${YELLOW}   詳細なヘルプを表示: $0 help${NC}"
             exit 1
             ;;
     esac

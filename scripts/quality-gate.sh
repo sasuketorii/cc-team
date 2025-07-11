@@ -169,9 +169,9 @@ evaluate_quality() {
         echo -e "Quality Score: ${GREEN}${QUALITY_SCORE}/100${NC}"
         return 0
     else
-        echo -e "${RED}❌ Quality gate FAILED${NC}"
-        echo -e "Quality Score: ${RED}${QUALITY_SCORE}/100${NC}"
-        echo -e "\n${RED}Issues found:${NC}"
+        echo -e "${RED}❌ 品質チェックが基準を満たしていません${NC}"
+        echo -e "品質スコア: ${RED}${QUALITY_SCORE}/100${NC} (必要: 80/100以上)"
+        echo -e "\n${RED}改善が必要な項目:${NC}"
         for issue in "${ISSUES[@]}"; do
             echo "  $issue"
         done
@@ -184,14 +184,15 @@ if [ "$1" = "pre-commit" ]; then
     run_quality_checks
     
     if ! evaluate_quality; then
-        echo -e "\n${RED}🚫 Commit blocked due to quality issues${NC}"
-        echo "Please fix the issues above before committing."
+        echo -e "\n${RED}🚫 品質基準を満たしていないため、コミットをブロックしました${NC}"
+        echo "上記の問題を修正してからコミットしてください。"
         
         # 自動修正の提案
-        echo -e "\n${YELLOW}💡 Suggestions:${NC}"
-        echo "1. Run 'npm test' to check test failures"
-        echo "2. Run 'npm run lint --fix' to auto-fix lint issues"
-        echo "3. Run 'npm audit fix' to fix vulnerabilities"
+        echo -e "\n${YELLOW}💡 修正方法の提案:${NC}"
+        echo "1. テストの失敗を確認: npm test"
+        echo "2. リントエラーを自動修正: npm run lint --fix"
+        echo "3. 脆弱性を修正: npm audit fix"
+        echo "4. カバレッジを確認: npm run test:coverage"
         
         exit 1
     fi

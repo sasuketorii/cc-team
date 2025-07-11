@@ -58,16 +58,24 @@ echo ""
 echo -e "${YELLOW}古い圧縮ログファイルを検索中...${NC}"
 DELETED_COUNT=0
 
+# .gzファイルの削除
 while IFS= read -r -d '' oldgz; do
     BASENAME=$(basename "$oldgz")
-    AGE=$(find "$oldgz" -mtime +${MAX_AGE} | wc -l)
-    
-    if [ $AGE -gt 0 ]; then
-        rm -f "$oldgz"
+    rm -f "$oldgz"
+    echo -e "  ${GREEN}✓${NC} 削除: $BASENAME"
+    ((DELETED_COUNT++))
+done < <(find "$LOG_DIR" -name "*.gz" -mtime +${MAX_AGE} -print0)
+
+# 古い通常のログファイルも削除（error_loops.json, *.jsonlなど）
+while IFS= read -r -d '' oldlog; do
+    BASENAME=$(basename "$oldlog")
+    # 重要なログは保護
+    if [[ ! "$BASENAME" =~ ^(system\.log|boss\.log|worker[1-3]\.log|communication\.log)$ ]]; then
+        rm -f "$oldlog"
         echo -e "  ${GREEN}✓${NC} 削除: $BASENAME"
         ((DELETED_COUNT++))
     fi
-done < <(find "$LOG_DIR" -name "*.gz" -mtime +${MAX_AGE} -print0)
+done < <(find "$LOG_DIR" \( -name "*.jsonl" -o -name "*.json" \) -mtime +${MAX_AGE} -print0)
 
 if [ $DELETED_COUNT -eq 0 ]; then
     echo -e "${GREEN}✓ 削除が必要な古いログファイルはありません${NC}"

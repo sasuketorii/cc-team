@@ -10,12 +10,8 @@ echo "Version: 1.0.0"
 echo "Date: $(date)"
 echo ""
 
-# カラー定義
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# カラー定義を共通ファイルから読み込み
+source "$(dirname "${BASH_SOURCE[0]}")/../scripts/common/colors.sh"
 
 # プロジェクトルート
 PROJECT_ROOT="/workspaces/CCTeam"

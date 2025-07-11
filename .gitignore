@@ -38,6 +38,7 @@ test-results-*.log
 
 # Claude settings (local)
 .claude/settings.local.json
+CLAUDE.local.md
 
 # Temporary files
 tmp/

@@ -3,14 +3,9 @@
 # CCTeam Status Monitor
 # リアルタイムでエージェントの状態を監視
 
-# カラー定義
-RED=$'\033[0;31m'
-GREEN=$'\033[0;32m'
-BLUE=$'\033[0;34m'
-YELLOW=$'\033[0;33m'
-PURPLE=$'\033[0;35m'
-CYAN=$'\033[0;36m'
-NC=$'\033[0m'
+# 共通カラー定義を読み込み
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common/colors.sh"
 
 # 状態を取得する関数
 get_agent_status() {
@@ -52,25 +47,25 @@ monitor_loop() {
     while true; do
         clear
         
-        echo "${CYAN}┌─────────────────────────────────────────────────┐${NC}"
-        echo "${CYAN}│${NC} CCTeam Status Monitor - $(date '+%H:%M:%S')        ${CYAN}│${NC}"
-        echo "${CYAN}├─────────────────────────────────────────────────┤${NC}"
+        echo -e "${CYAN}┌─────────────────────────────────────────────────┐${NC}"
+        echo -e "${CYAN}│${NC} CCTeam Status Monitor - $(date '+%H:%M:%S')        ${CYAN}│${NC}"
+        echo -e "${CYAN}├─────────────────────────────────────────────────┤${NC}"
         
         # Boss状態
         boss_status=$(get_agent_status "ccteam-boss" "0")
-        echo "${CYAN}│${NC} ${RED}Boss:${NC}    $boss_status                      ${CYAN}│${NC}"
+        echo -e "${CYAN}│${NC} ${RED}Boss:${NC}    $boss_status                      ${CYAN}│${NC}"
         
         # Worker状態
         worker1_status=$(get_agent_status "ccteam-workers" "0")
         worker2_status=$(get_agent_status "ccteam-workers" "1")
         worker3_status=$(get_agent_status "ccteam-workers" "2")
         
-        echo "${CYAN}│${NC} ${BLUE}Worker1:${NC} $worker1_status                     ${CYAN}│${NC}"
-        echo "${CYAN}│${NC} ${GREEN}Worker2:${NC} $worker2_status                     ${CYAN}│${NC}"
-        echo "${CYAN}│${NC} ${YELLOW}Worker3:${NC} $worker3_status                     ${CYAN}│${NC}"
+        echo -e "${CYAN}│${NC} ${BLUE}Worker1:${NC} $worker1_status                     ${CYAN}│${NC}"
+        echo -e "${CYAN}│${NC} ${GREEN}Worker2:${NC} $worker2_status                     ${CYAN}│${NC}"
+        echo -e "${CYAN}│${NC} ${YELLOW}Worker3:${NC} $worker3_status                     ${CYAN}│${NC}"
         
-        echo "${CYAN}├─────────────────────────────────────────────────┤${NC}"
-        echo "${CYAN}│${NC} 最新の通信:                                    ${CYAN}│${NC}"
+        echo -e "${CYAN}├─────────────────────────────────────────────────┤${NC}"
+        echo -e "${CYAN}│${NC} 最新の通信:                                    ${CYAN}│${NC}"
         
         # 最新のログ表示
         if [ -f logs/boss.log ]; then
@@ -80,11 +75,11 @@ monitor_loop() {
             fi
         fi
         
-        echo "${CYAN}├─────────────────────────────────────────────────┤${NC}"
-        echo "${CYAN}│${NC} 操作:                                          ${CYAN}│${NC}"
-        echo "${CYAN}│${NC}  [a] Boss接続  [w] Worker接続  [r] 更新        ${CYAN}│${NC}"
-        echo "${CYAN}│${NC}  [l] ログ表示  [q] 終了                        ${CYAN}│${NC}"
-        echo "${CYAN}└─────────────────────────────────────────────────┘${NC}"
+        echo -e "${CYAN}├─────────────────────────────────────────────────┤${NC}"
+        echo -e "${CYAN}│${NC} 操作:                                          ${CYAN}│${NC}"
+        echo -e "${CYAN}│${NC}  [a] Boss接続  [w] Worker接続  [r] 更新        ${CYAN}│${NC}"
+        echo -e "${CYAN}│${NC}  [l] ログ表示  [q] 終了                        ${CYAN}│${NC}"
+        echo -e "${CYAN}└─────────────────────────────────────────────────┘${NC}"
         
         # キー入力待機（1秒タイムアウト）
         read -t 1 -n 1 key

@@ -5,12 +5,9 @@
 
 set -euo pipefail
 
-# カラー定義
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# 共通カラー定義を読み込み
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common/colors.sh"
 
 echo -e "${BLUE}🚀 CCTeam セットアップ開始 (v2.0.0)${NC}"
 echo ""
@@ -106,12 +103,12 @@ echo ""
 echo -e "${GREEN}✅ セットアップが完了しました！${NC}"
 echo ""
 echo "📋 新しいセッション構成:"
-echo "  - ${BLUE}ccteam-workers${NC}: Worker1, Worker2, Worker3（3分割）"
-echo "  - ${RED}ccteam-boss${NC}: Boss + Gemini（2分割幹部）"
+echo -e "  - ${BLUE}ccteam-workers${NC}: Worker1, Worker2, Worker3（3分割）"
+echo -e "  - ${RED}ccteam-boss${NC}: Boss + Gemini（2分割幹部）"
 echo ""
 echo "🔧 次のステップ:"
-echo "  1. ワーカーセッションに接続: ${GREEN}tmux attach -t ccteam-workers${NC}"
-echo "  2. 幹部セッションに接続: ${GREEN}tmux attach -t ccteam-boss${NC}"
-echo "  3. CCTeamを起動: ${GREEN}./scripts/launch-ccteam.sh${NC}"
+echo -e "  1. ワーカーセッションに接続: ${GREEN}tmux attach -t ccteam-workers${NC}"
+echo -e "  2. 幹部セッションに接続: ${GREEN}tmux attach -t ccteam-boss${NC}"
+echo -e "  3. CCTeamを起動: ${GREEN}./scripts/launch-ccteam.sh${NC}"
 echo ""
 echo -e "${BLUE}💡 ヒント: Bossが幹部セッションから全ワーカーを管理します${NC}"

@@ -11,13 +11,8 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # セキュリティユーティリティを読み込み
 source "$SCRIPT_DIR/security-utils.sh"
 
-# カラー定義
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-PURPLE='\033[0;35m'
-NC='\033[0m'
+# カラー定義を共通ファイルから読み込み
+source "$SCRIPT_DIR/common/colors.sh"
 
 # ログ設定
 LOG_DIR="$PROJECT_ROOT/logs"

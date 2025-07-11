@@ -11,8 +11,17 @@ cd "$SCRIPT_DIR/.."
 
 # 引数チェック
 if [ $# -lt 2 ]; then
-    echo "Usage: $0 <agent> <message>"
-    echo "Agents: boss, worker1, worker2, worker3"
+    echo "📋 使用方法: $0 <エージェント名> <メッセージ>"
+    echo ""
+    echo "利用可能なエージェント:"
+    echo "  boss    - 全体管理を行うBOSSエージェント"
+    echo "  worker1 - フロントエンド開発担当"
+    echo "  worker2 - バックエンド開発担当"
+    echo "  worker3 - テスト・品質保証担当"
+    echo ""
+    echo "使用例:"
+    echo "  $0 boss \"要件を読み込んで作業を開始してください\""
+    echo "  $0 worker1 \"UIコンポーネントを実装してください\""
     exit 1
 fi
 
@@ -24,7 +33,9 @@ case $AGENT in
     boss|worker1|worker2|worker3)
         ;;
     *)
-        echo "Error: Invalid agent name. Use: boss, worker1, worker2, worker3"
+        echo "❌ エラー: 無効なエージェント名です: '$AGENT'"
+        echo "   使用可能なエージェント: boss, worker1, worker2, worker3"
+        echo "   例: $0 boss \"タスクを開始してください\""
         exit 1
         ;;
 esac
