@@ -40,19 +40,19 @@ case $AGENT in
         ;;
 esac
 
-# tmuxペインのマッピング
+# tmuxペインのマッピング (単一セッション ccteam)
 case $AGENT in
     boss)
-        PANE="ccteam-boss:main.0"
-        ;;
-    worker1)
         PANE="ccteam:main.0"
         ;;
-    worker2)
+    worker1)
         PANE="ccteam:main.1"
         ;;
-    worker3)
+    worker2)
         PANE="ccteam:main.2"
+        ;;
+    worker3)
+        PANE="ccteam:main.3"
         ;;
 esac
 
