@@ -1,7 +1,7 @@
-# CCTeam プロジェクト v0.1.12
+# CCTeam プロジェクト v0.2.0
 
 ## 概要
-CCTeamはClaude Code AIエージェントによる統合Boss + 3 Workers構成の開発チームです。tmuxを使用して単一セッションで全エージェントを管理し、効率的な並列開発を実現します。
+CCTeamはClaude Code AIエージェントによる階層型開発チームです。1人のBossが3つのチーム（各チーム: PM1名 + Worker3名）を統括し、効率的な並列開発を実現します。
 
 ## Tech Stack
 - **Framework**: Node.js + TypeScript
@@ -73,11 +73,23 @@ npm run lint                      # リント実行
 
 ## CCTeam Specific Rules
 
-### エージェント構成（統合アーキテクチャ）
-- **BOSS** (統合版): 全体管理・Worker直接制御
-- **Worker1**: フロントエンド開発
-- **Worker2**: バックエンド開発
-- **Worker3**: テスト・品質保証
+### エージェント構成（階層型アーキテクチャ）
+- **Boss**: 全体統括（PMとのみ通信）
+- **Team1 (Frontend)**:
+  - PM-1: フロントエンド統括
+  - Worker1: UIコンポーネント
+  - Worker2: 状態管理
+  - Worker3: テスト・品質
+- **Team2 (Backend)**:
+  - PM-2: バックエンド統括
+  - Worker1: API開発
+  - Worker2: データベース
+  - Worker3: セキュリティ
+- **Team3 (DevOps)**:
+  - PM-3: DevOps統括
+  - Worker1: CI/CD
+  - Worker2: インフラ
+  - Worker3: 監視・運用
 
 ## セットアップ
 
@@ -86,23 +98,31 @@ npm run lint                      # リント実行
 # 環境構築
 ./scripts/setup.sh
 
-# CCTeam起動（v3: 手動認証版）
-ccteam  # または ./scripts/launch-ccteam-v3.sh
+# CCTeam起動（v4: 自動Bypassモード）
+ccteam  # または ./scripts/launch-ccteam-v4.sh
 
 # プロジェクト状況確認
 ./scripts/project-status.sh
 
 # tmux接続
-tmux attach -t ccteam
+tmux attach -t ccteam-boss   # Boss
+tmux attach -t ccteam-1      # Team1 (Frontend)
+tmux attach -t ccteam-2      # Team2 (Backend)
+tmux attach -t ccteam-3      # Team3 (DevOps)
 ```
 
 ### エージェント間通信
 ```bash
-# BOSSへの指示:
-./scripts/agent-send.sh boss "requirementsを読み込んで作業を開始してください"
+# Bossへの指示:
+ccsend boss "@requirements を読み込んで作業を開始してください"
 
-# Workerへの直接指示（通常はBoss経由）:
-./scripts/agent-send.sh worker1 "UIコンポーネントを実装してください"
+# PMへの指示（通常はBoss経由）:
+ccsend pm1 "フロントエンド開発を開始してください"
+ccsend pm2 "バックエンド開発を開始してください"
+ccsend pm3 "インフラ構築を開始してください"
+
+# Workerへの直接指示（緊急時のみ、通常はPM経由）:
+ccsend worker1-1 "UIコンポーネントを実装してください"
 ```
 
 ### tmuxペイン管理

@@ -6,7 +6,7 @@
   <h3>要件定義を入れるだけで、AIチームが24時間365日開発を続ける</h3>
   <br>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.14-blue.svg" />
+    <img src="https://img.shields.io/badge/version-0.2.0-blue.svg" />
     <img src="https://img.shields.io/badge/claude-opus--4-purple.svg" />
     <img src="https://img.shields.io/badge/by-SasukeTorii-orange.svg" />
     <img src="https://img.shields.io/badge/license-AGPL--3.0-green.svg" />
@@ -66,15 +66,20 @@
 ```
 あなた（CEO/オーナー）
     ↓ 要件定義を入れるだけ
-┌─────────────────────────────────────┐
-│          CCTeam Virtual Inc.         │
-├─────────────────────────────────────┤
-│  Boss (CTO)                         │
-│  ・要件分析・タスク分配・進捗管理    │
-├─────────────┬───────────┬──────────┤
-│  Worker1    │  Worker2  │ Worker3  │
-│  Frontend   │  Backend  │ QA/DevOps│
-└─────────────┴───────────┴──────────┘
+┌─────────────────────────────────────────────┐
+│            CCTeam Virtual Inc.               │
+├─────────────────────────────────────────────┤
+│               Boss (CEO)                     │
+│         ・要件分析・戦略立案・統括            │
+├───────────────┬─────────────┬───────────────┤
+│    Team1      │    Team2    │    Team3      │
+│   Frontend    │   Backend   │   DevOps      │
+├───────────────┼─────────────┼───────────────┤
+│ PM-1 (Opus)   │ PM-2 (Opus) │ PM-3 (Opus)   │
+│ ├ Worker1(UI) │ ├ Worker1   │ ├ Worker1     │
+│ ├ Worker2     │ ├ Worker2   │ ├ Worker2     │
+│ └ Worker3     │ └ Worker3   │ └ Worker3     │
+└───────────────┴─────────────┴───────────────┘
     ↓ 24時間365日並列開発
 完成したシステム
 ```

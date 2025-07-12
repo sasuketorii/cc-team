@@ -187,6 +187,62 @@ EOF
 chmod +x "$BIN_DIR/cckill"
 echo "  ✅ cckill"
 
+# ccteam-hierarchyコマンド
+cat > "$BIN_DIR/ccteam-hierarchy" << 'EOF'
+#!/bin/bash
+# CCTeam階層型構造起動
+
+find_ccteam_root() {
+    local current_dir="$PWD"
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/launch-ccteam-hierarchy.sh" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    return 1
+}
+
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    exec "$CCTEAM_ROOT/scripts/launch-ccteam-hierarchy.sh" "$@"
+else
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    exit 1
+fi
+EOF
+
+chmod +x "$BIN_DIR/ccteam-hierarchy"
+echo "  ✅ ccteam-hierarchy"
+
+# ccsend-hierarchyコマンド
+cat > "$BIN_DIR/ccsend-hierarchy" << 'EOF'
+#!/bin/bash
+# CCTeam階層型構造用送信
+
+find_ccteam_root() {
+    local current_dir="$PWD"
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/agent-send-hierarchy.sh" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    return 1
+}
+
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    exec "$CCTEAM_ROOT/scripts/agent-send-hierarchy.sh" "$@"
+else
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    exit 1
+fi
+EOF
+
+chmod +x "$BIN_DIR/ccsend-hierarchy"
+echo "  ✅ ccsend-hierarchy"
+
 # ccrollcallコマンド
 cat > "$BIN_DIR/ccrollcall" << 'EOF'
 #!/bin/bash

@@ -1,0 +1,39 @@
+リソース名	概要	リンク
+Claude Code: Best practices for agentic coding	Anthropic公式ブログのベストプラクティス集。多言語・大規模コードベースでの効果的な活用法を解説。 
+Anthropic
+https://www.anthropic.com/engineering/claude-code-best-practices
+Claude Code Security	デフォルトでは読み取りのみ権限。編集やコマンド実行をバイパスモード含めどう設定するか詳細解説。 
+Anthropic
+https://docs.anthropic.com/en/docs/claude-code/security
+Claude Code Settings	グローバル／プロジェクト単位設定、環境変数、REPLでの /config など、詳細な設定方法まとめ。 
+Anthropic
+https://docs.anthropic.com/en/docs/claude-code/settings
+Claude Code SDK	CLIのほか、TypeScript／Python SDKでの高度な利用例。自動化パイプラインへの組み込み方も解説。 
+Anthropic
+https://docs.anthropic.com/en/docs/claude-code/sdk
+Deep Coding at Terminal Velocity	ターミナル上でコードベースを瞬時にマップ＆操作。エージェント的検索の仕組みを紹介。 
+Anthropic
+https://www.anthropic.com/claude-code
+Claude Code ベストプラクティス（Zenn）	日本語で学べる実践的ガイド。環境構築からワークフロー最適化、マルチインスタンス運用まで段階的に。 
+Zenn
+https://zenn.dev/farstep/articles/claude-code-best-practices
+非同期コーディングエージェント 上級編（Zenn）	定型作業ショートカット、賢いコードレビュー、プレイブック化など、ワークフロー自動化の実践例。 
+Zenn
+https://zenn.dev/aidriven/articles/39a1186cb88f7f
+The Claude Code Complete Guide（Substack）	セットアップからマルチエージェント運用、コスト最適化、vibe‑codingティップスまで一挙解説。 
+natesnewsletter.substack.com
+https://natesnewsletter.substack.com/p/the-claude-code-complete-guide-learn
+How to stop permission prompts?（Reddit）	--dangerously-skip-permissions など、実運用でよく聞く権限プロンプト回避法を議論。 
+Reddit
+https://www.reddit.com/r/ClaudeAI/comments/1l45dcr/how_to_stop_claude_code_from_asking_for/
+Introducing Claude 4（Anthropic News）	GitHub Actions連携やIDE統合など、Claude Code最新機能のアップデート情報。 
+Anthropic
+https://www.anthropic.com/news/claude-4
+Claude Code上級テクニック完全マスター（note）	隠れたティップスやカスタムプレイブック作成法など、プロ向けトリック満載。 
+note（ノート）
+https://note.com/oshima0627/n/n328887b990a8
+Anthropic’s Guide to Claude Code（Redditまとめ）	CLAUDE.md によるリポジトリ内ガイド設定や、エージェント動作のカスタマイズ手法。 
+Reddit
+https://www.reddit.com/r/ClaudeAI/comments/1k5slll/anthropics_guide_to_claude_code_best_practices
+
+
