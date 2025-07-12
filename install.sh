@@ -1,212 +1,263 @@
 #!/bin/bash
-# CCTeam インストーラー v0.1.5
-# グローバルコマンドとしてCCTeamをインストール
-# DevContainer & Worktree自動化対応
+# CCTeam インストールスクリプト v1.0.0
+# グローバルコマンドのインストールと環境設定
 
-set -e
+set -euo pipefail
 
-# カラー定義を共通ファイルから読み込み
-source "$(dirname "${BASH_SOURCE[0]}")/scripts/common/colors.sh"
+# スクリプトのディレクトリを取得
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR"
 
-VERSION="0.1.5"
+# カラー定義
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 CCTeam Installer v$VERSION${NC}"
-echo "================================"
-echo "DevContainer & Worktree対応版"
+echo -e "${BLUE}🚀 CCTeam インストーラー v1.0.0${NC}"
+echo "=================================="
 echo ""
 
 # インストール先の確認
-INSTALL_DIR="$HOME/CC-Team/CCTeam"
-if [ ! -d "$INSTALL_DIR" ]; then
-    # 現在のディレクトリがCCTeamプロジェクトルートの場合
-    if [ -f "./scripts/launch-ccteam-v4.sh" ] || [ -f "./scripts/launch-ccteam-v3.sh" ]; then
-        INSTALL_DIR="$(pwd)"
-        echo -e "${GREEN}現在のディレクトリをCCTeamとして使用: $INSTALL_DIR${NC}"
-    else
-        echo -e "${RED}Error: CCTeam not found${NC}"
-        echo "Please clone CCTeam first:"
-        echo "  git clone https://github.com/sasuketorii/cc-team.git ~/CC-Team"
-        exit 1
-    fi
-fi
+BIN_DIR="$HOME/.local/bin"
+echo -e "${YELLOW}📁 インストール先: $BIN_DIR${NC}"
 
-# インストールモード判定
-INSTALL_MODE="global"
-if [ "$1" = "--local" ]; then
-    INSTALL_MODE="local"
-    echo -e "${YELLOW}ローカルモードでインストールします${NC}"
-elif [ "$1" = "--dev-container" ] || [ "$CCTEAM_DEV_CONTAINER" = "true" ]; then
-    INSTALL_MODE="devcontainer"
-    echo -e "${YELLOW}DevContainerモードでインストールします${NC}"
-fi
+# ディレクトリ作成
+mkdir -p "$BIN_DIR"
 
-# インストール先ディレクトリ
-if [ "$INSTALL_MODE" = "local" ]; then
-    BIN_DIR="$HOME/.local/bin"
-    mkdir -p "$BIN_DIR"
-elif [ "$INSTALL_MODE" = "devcontainer" ]; then
-    BIN_DIR="/usr/local/bin"
-else
-    BIN_DIR="/usr/local/bin"
-fi
+# グローバルコマンドのインストール
+echo ""
+echo -e "${GREEN}📦 グローバルコマンドをインストール中...${NC}"
 
-# グローバルコマンドの作成
-echo -e "\n${YELLOW}Creating global commands...${NC}"
-
-# ccteamコマンド作成（v4対応）
-cat > /tmp/ccteam << EOF
+# ccteamコマンド
+cat > "$BIN_DIR/ccteam" << 'EOF'
 #!/bin/bash
-# CCTeam launcher command v$VERSION
+# CCTeam グローバル起動コマンド
 
-CCTEAM_HOME="$INSTALL_DIR"
-export CCTEAM_HOME
+# プロジェクトルートを検出
+find_ccteam_root() {
+    local current_dir="$PWD"
+    
+    # 現在のディレクトリから上に向かって探索
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/launch-ccteam-v3.sh" ] && \
+           [ -d "$current_dir/instructions" ] && \
+           [ -d "$current_dir/requirements" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    
+    # 見つからない場合はホームディレクトリのCCTeam関連を探す
+    for dir in "$HOME/CCTeam-Dev1/cc-team" "$HOME/cc-team" "$HOME/CCTeam"; do
+        if [ -f "$dir/scripts/launch-ccteam-v3.sh" ]; then
+            echo "$dir"
+            return 0
+        fi
+    done
+    
+    return 1
+}
 
-# ディレクトリ移動
-cd "\$CCTEAM_HOME" || exit 1
-
-# v4起動スクリプトが存在する場合は使用
-if [ -f "./scripts/launch-ccteam-v4.sh" ]; then
-    exec ./scripts/launch-ccteam-v4.sh "\$@"
-# v3にフォールバック
-elif [ -f "./scripts/launch-ccteam-v3.sh" ]; then
-    exec ./scripts/launch-ccteam-v3.sh "\$@"
+# CCTeamプロジェクトルートを検出
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    cd "$CCTEAM_ROOT"
+    exec ./scripts/launch-ccteam-v3.sh "$@"
 else
-    echo "Error: CCTeam launch script not found"
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    echo "現在のディレクトリまたは親ディレクトリにCCTeamプロジェクトが存在することを確認してください"
     exit 1
 fi
 EOF
 
-# ccguideコマンド（ccteamのエイリアス）
-cat > /tmp/ccguide << EOF
-#!/bin/bash
-# CCTeam guided launcher
-exec ccteam --guided "\$@"
-EOF
-
-# ccstatusコマンド
-cat > /tmp/ccstatus << EOF
-#!/bin/bash
-cd "$INSTALL_DIR" && ./scripts/project-status.sh "\$@"
-EOF
+chmod +x "$BIN_DIR/ccteam"
+echo "  ✅ ccteam"
 
 # ccsendコマンド
-cat > /tmp/ccsend << EOF
+cat > "$BIN_DIR/ccsend" << 'EOF'
 #!/bin/bash
-cd "$INSTALL_DIR" && ./scripts/enhanced_agent_send.sh "\$@"
+# エージェントへのメッセージ送信
+
+find_ccteam_root() {
+    local current_dir="$PWD"
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/agent-send.sh" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    return 1
+}
+
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    exec "$CCTEAM_ROOT/scripts/agent-send.sh" "$@"
+else
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    exit 1
+fi
 EOF
+
+chmod +x "$BIN_DIR/ccsend"
+echo "  ✅ ccsend"
+
+# ccstatusコマンド
+cat > "$BIN_DIR/ccstatus" << 'EOF'
+#!/bin/bash
+# CCTeamステータス確認
+
+find_ccteam_root() {
+    local current_dir="$PWD"
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/project-status.sh" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    return 1
+}
+
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    exec "$CCTEAM_ROOT/scripts/project-status.sh" "$@"
+else
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    exit 1
+fi
+EOF
+
+chmod +x "$BIN_DIR/ccstatus"
+echo "  ✅ ccstatus"
 
 # ccmonコマンド
-cat > /tmp/ccmon << EOF
+cat > "$BIN_DIR/ccmon" << 'EOF'
 #!/bin/bash
-cd "$INSTALL_DIR" && ./scripts/ccteam-monitor.sh "\$@"
+# CCTeamモニタリング
+
+find_ccteam_root() {
+    local current_dir="$PWD"
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/ccteam-monitor.sh" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    return 1
+}
+
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    exec "$CCTEAM_ROOT/scripts/ccteam-monitor.sh" "$@"
+else
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    exit 1
+fi
 EOF
+
+chmod +x "$BIN_DIR/ccmon"
+echo "  ✅ ccmon"
 
 # cckillコマンド
-cat > /tmp/cckill << EOF
+cat > "$BIN_DIR/cckill" << 'EOF'
 #!/bin/bash
-cd "$INSTALL_DIR" && ./scripts/ccteam-kill.sh "\$@"
-EOF
+# CCTeamセッション終了
 
-# ccworktreeコマンド（新規）
-cat > /tmp/ccworktree << EOF
-#!/bin/bash
-cd "$INSTALL_DIR" && ./scripts/worktree-auto-manager.sh "\$@"
-EOF
+find_ccteam_root() {
+    local current_dir="$PWD"
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/ccteam-kill.sh" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    return 1
+}
 
-# ccnotifyコマンド（新規）
-cat > /tmp/ccnotify << EOF
-#!/bin/bash
-cd "$INSTALL_DIR" && ./scripts/notification-manager.sh "\$@"
-EOF
-
-# cccleanコマンド（新規）
-cat > /tmp/ccclean << EOF
-#!/bin/bash
-cd "$INSTALL_DIR" && ./scripts/worktree-cleanup.sh "\$@"
-EOF
-
-# インストール実行
-echo -e "\n${YELLOW}Installing commands to $BIN_DIR...${NC}"
-
-# sudoが必要か判定
-SUDO_CMD=""
-if [ "$INSTALL_MODE" = "global" ] && [ ! -w "$BIN_DIR" ]; then
-    SUDO_CMD="sudo"
-    echo "This requires sudo permission to install to $BIN_DIR"
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    exec "$CCTEAM_ROOT/scripts/ccteam-kill.sh" "$@"
+else
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    exit 1
 fi
-
-# コマンドをインストール
-for cmd in ccteam ccguide ccstatus ccsend ccmon cckill ccworktree ccnotify ccclean; do
-    $SUDO_CMD mv /tmp/$cmd "$BIN_DIR/" 2>/dev/null || {
-        echo -e "${RED}Failed to install $cmd${NC}"
-        continue
-    }
-    $SUDO_CMD chmod +x "$BIN_DIR/$cmd"
-    echo -e "${GREEN}✓ Installed: $cmd${NC}"
-done
-
-# エイリアス設定ファイル作成
-cat > "$HOME/.ccteam-commands" << 'EOF'
-# CCTeam Quick Commands v4.0.0
-alias cct='ccteam'                    # CCTeam起動
-alias cca='tmux attach -t ccteam'     # tmuxセッションに接続
-alias ccs='ccstatus'                  # ステータス確認
-alias ccm='ccmon'                     # リアルタイム監視
-alias cck='cckill'                    # セッション終了
-
-# v4新機能
-alias ccw='ccworktree'                # Worktree管理
-alias ccn='ccnotify'                  # 通知テスト
-alias ccc='ccclean'                   # クリーンアップ
-alias ccwt='ccworktree status'        # Worktree状態確認
-alias ccwc='ccworktree create-project-worktrees'  # Worktree作成
-alias ccwi='ccworktree prepare-integration'       # 統合レポート
-alias ccca='ccclean auto'             # 自動クリーンアップ
-alias cccl='ccclean list'             # クリーンアップ候補表示
-
-# ショートカット（Boss v2対応）
-alias ccstart='ccsend boss "requirementsを読み込んでプロジェクトを開始してください"'
-alias ccprogress='ccsend boss "進捗を確認してください"'
-alias ccintegrate='ccsend boss "統合準備をしてください"'
 EOF
 
-echo -e "${GREEN}✓ Command aliases created${NC}"
+chmod +x "$BIN_DIR/cckill"
+echo "  ✅ cckill"
 
-# PATH確認（ローカルモードの場合）
-if [ "$INSTALL_MODE" = "local" ] && [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-    echo -e "\n${YELLOW}⚠️  $BIN_DIR is not in PATH${NC}"
-    echo "Add the following to your ~/.bashrc or ~/.zshrc:"
-    echo 'export PATH="$HOME/.local/bin:$PATH"'
-fi
+# ccrollcallコマンド
+cat > "$BIN_DIR/ccrollcall" << 'EOF'
+#!/bin/bash
+# CCTeam自動点呼
 
-# 最終手順
-echo -e "\n${BLUE}📋 Final Steps:${NC}"
-echo ""
-echo "1. Add to your shell config (~/.bashrc or ~/.zshrc):"
-echo -e "${YELLOW}   source ~/.ccteam-commands${NC}"
-echo ""
-echo "2. Reload your shell:"
-echo -e "${YELLOW}   source ~/.bashrc${NC}  # or ~/.zshrc"
-echo ""
-echo -e "${GREEN}✅ Installation Complete!${NC}"
-echo ""
-echo "CCTeam v$VERSION Commands:"
-echo "  ${BLUE}ccteam${NC}         - Start CCTeam (v4: DevContainer対応)"
-echo "  ${BLUE}ccguide${NC}        - ガイド付き起動"
-echo "  ${BLUE}ccmon${NC}          - リアルタイム監視"
-echo "  ${BLUE}ccworktree${NC}     - Worktree管理 🆕"
-echo "  ${BLUE}ccnotify${NC}       - 通知テスト 🆕"
-echo "  ${BLUE}ccclean${NC}        - Worktreeクリーンアップ 🆕"
-echo ""
-echo "Quick aliases:"
-echo "  ${BLUE}cct${NC}            - ccteamの短縮"
-echo "  ${BLUE}cca${NC}            - セッション接続"
-echo "  ${BLUE}ccs${NC}            - ステータス確認"
-echo "  ${BLUE}ccw${NC}            - Worktree管理"
-echo "  ${BLUE}ccstart${NC}        - プロジェクト開始（Boss v2）🆕"
-echo ""
-echo "No need to cd anymore! Run from anywhere! 🎉"
-echo ""
-if [ "$INSTALL_MODE" = "devcontainer" ]; then
-    echo -e "${GREEN}DevContainer環境でのインストールが完了しました！${NC}"
+find_ccteam_root() {
+    local current_dir="$PWD"
+    while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/scripts/auto-rollcall.sh" ]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    return 1
+}
+
+if CCTEAM_ROOT=$(find_ccteam_root); then
+    exec "$CCTEAM_ROOT/scripts/auto-rollcall.sh" "$@"
+else
+    echo "❌ エラー: CCTeamプロジェクトが見つかりません"
+    exit 1
 fi
+EOF
+
+chmod +x "$BIN_DIR/ccrollcall"
+echo "  ✅ ccrollcall"
+
+# PATH設定の確認と追加
+echo ""
+echo -e "${YELLOW}🔧 PATH設定を確認中...${NC}"
+
+add_to_path() {
+    local shell_rc=$1
+    local shell_name=$2
+    
+    if [ -f "$HOME/$shell_rc" ]; then
+        if ! grep -q "$BIN_DIR" "$HOME/$shell_rc"; then
+            echo "" >> "$HOME/$shell_rc"
+            echo "# CCTeam PATH" >> "$HOME/$shell_rc"
+            echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$HOME/$shell_rc"
+            echo -e "  ✅ $shell_name: PATH追加完了"
+        else
+            echo -e "  ℹ️  $shell_name: 既にPATHに追加済み"
+        fi
+    fi
+}
+
+# bash設定
+add_to_path ".bashrc" "bash"
+
+# zsh設定
+add_to_path ".zshrc" "zsh"
+
+# 現在のシェルにも反映
+export PATH="$HOME/.local/bin:$PATH"
+
+# インストール完了
+echo ""
+echo -e "${GREEN}✅ インストール完了！${NC}"
+echo ""
+echo "以下のコマンドが利用可能になりました："
+echo "  • ccteam      - CCTeamを起動"
+echo "  • ccsend      - エージェントにメッセージ送信"
+echo "  • ccstatus    - プロジェクトステータス確認"
+echo "  • ccmon       - リアルタイムモニタリング"
+echo "  • cckill      - CCTeamセッション終了"
+echo "  • ccrollcall  - 全エージェントの点呼"
+echo ""
+echo -e "${YELLOW}💡 新しいターミナルを開くか、以下を実行してPATHを反映してください：${NC}"
+echo "   source ~/.bashrc  # bashの場合"
+echo "   source ~/.zshrc   # zshの場合"
+echo ""
+echo -e "${BLUE}🚀 CCTeamを起動するには: ccteam${NC}"

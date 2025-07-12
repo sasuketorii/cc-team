@@ -53,6 +53,16 @@ cclog() {
         echo "{\"timestamp\":\"$timestamp\",\"level\":\"$level\",\"message\":\"$message\"}" >> "$log_file.json"
     fi
     
+    # Python構造化ロガーとの統合
+    if [ -f "$PROJECT_ROOT/scripts/structured_logger.py" ] && command -v python3 &>/dev/null; then
+        python3 "$PROJECT_ROOT/scripts/structured_logger.py" \
+            --log \
+            --level="$level" \
+            --message="$message" \
+            --component="${CCTEAM_COMPONENT:-general}" \
+            2>/dev/null || true
+    fi
+    
     # コンソール出力
     case $level in
         "INFO")    echo -e "${BLUE}ℹ️${NC}  $message" ;;

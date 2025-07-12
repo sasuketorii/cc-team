@@ -1,110 +1,81 @@
 #!/bin/bash
-# CCTeam セキュリティユーティリティ v1.0.0
-# 共通のセキュリティ関数
+# セキュリティユーティリティ関数
+# worktree-auto-manager.sh等から利用される
 
 set -euo pipefail
 
-# パス検証関数
-validate_path() {
+# セキュアなgit clone実行
+secure_clone() {
+    local repo_url=$1
+    local target_dir=$2
+    
+    # URLの検証
+    if [[ ! "$repo_url" =~ ^(https://|git@|ssh://) ]]; then
+        echo "エラー: 無効なリポジトリURL: $repo_url" >&2
+        return 1
+    fi
+    
+    # ディレクトリの検証
+    if [[ -e "$target_dir" ]]; then
+        echo "エラー: ターゲットディレクトリが既に存在します: $target_dir" >&2
+        return 1
+    fi
+    
+    # クローン実行
+    git clone "$repo_url" "$target_dir"
+}
+
+# worktreeパスの検証
+validate_worktree_path() {
     local path=$1
-    local base_dir=${2:-""}
     
-    # 空のパスチェック
-    if [ -z "$path" ]; then
-        echo "ERROR: 空のパスが指定されました" >&2
+    # パス内に危険な文字が含まれていないか確認
+    if [[ "$path" =~ \.\. ]] || [[ "$path" =~ ^/ ]]; then
+        echo "エラー: 無効なworktreeパス: $path" >&2
         return 1
     fi
     
-    # パストラバーサル攻撃の検出
-    if [[ "$path" =~ \.\. ]] || [[ "$path" =~ ^/ && -n "$base_dir" ]]; then
-        echo "ERROR: 無効なパス: $path" >&2
-        return 1
-    fi
+    # プロジェクトディレクトリ内かチェック
+    local abs_path=$(cd "$(dirname "$path")" 2>/dev/null && pwd)/$(basename "$path")
+    local project_root=$(git rev-parse --show-toplevel 2>/dev/null)
     
-    # スペースや特殊文字のチェック
-    if [[ "$path" =~ [[:space:]\$\`\'\"\\\<\>\|] ]]; then
-        echo "ERROR: パスに無効な文字が含まれています: $path" >&2
-        return 1
-    fi
-    
-    # ベースディレクトリ内かチェック
-    if [ -n "$base_dir" ]; then
-        local real_path=$(realpath -m "$base_dir/$path" 2>/dev/null || echo "")
-        local real_base=$(realpath "$base_dir" 2>/dev/null || echo "")
-        
-        if [ -z "$real_path" ] || [ -z "$real_base" ] || [[ ! "$real_path" =~ ^"$real_base" ]]; then
-            echo "ERROR: パスがベースディレクトリ外です: $path" >&2
-            return 1
-        fi
-    fi
-    
-    return 0
-}
-
-# 環境変数検証関数
-validate_env_var() {
-    local var_name=$1
-    local pattern=${2:-".*"}
-    local required=${3:-false}
-    
-    local value="${!var_name:-}"
-    
-    # 必須チェック
-    if [ "$required" = "true" ] && [ -z "$value" ]; then
-        echo "ERROR: 必須環境変数が設定されていません: $var_name" >&2
-        return 1
-    fi
-    
-    # パターンマッチ
-    if [ -n "$value" ] && ! [[ "$value" =~ $pattern ]]; then
-        echo "ERROR: 環境変数の値が無効です: $var_name" >&2
+    if [[ ! "$abs_path" =~ ^"$project_root" ]]; then
+        echo "エラー: worktreeパスがプロジェクト外です: $path" >&2
         return 1
     fi
     
     return 0
 }
 
-# URL検証関数
-validate_url() {
-    local url=$1
-    local allowed_protocols=${2:-"https"}
+# Git権限チェック
+check_git_permissions() {
+    local repo_path=${1:-.}
     
-    if [ -z "$url" ]; then
-        return 0  # 空のURLは許可
-    fi
-    
-    # プロトコルチェック
-    local protocol_pattern="^($allowed_protocols)://"
-    if ! [[ "$url" =~ $protocol_pattern ]]; then
-        echo "ERROR: 無効なURLプロトコル: $url" >&2
+    # .gitディレクトリの存在確認
+    if [[ ! -d "$repo_path/.git" ]] && ! git -C "$repo_path" rev-parse --git-dir >/dev/null 2>&1; then
+        echo "エラー: Gitリポジトリが見つかりません: $repo_path" >&2
         return 1
     fi
     
-    # 基本的なURL構造チェック
-    if ! [[ "$url" =~ ^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,} ]]; then
-        echo "ERROR: 無効なURL形式: $url" >&2
+    # 書き込み権限確認
+    if [[ ! -w "$repo_path" ]]; then
+        echo "エラー: リポジトリへの書き込み権限がありません: $repo_path" >&2
         return 1
+    fi
+    
+    # Git設定の確認
+    if ! git -C "$repo_path" config user.name >/dev/null 2>&1; then
+        echo "警告: Git user.nameが設定されていません" >&2
+    fi
+    
+    if ! git -C "$repo_path" config user.email >/dev/null 2>&1; then
+        echo "警告: Git user.emailが設定されていません" >&2
     fi
     
     return 0
 }
 
-# ファイル権限チェック関数
-check_file_permissions() {
-    local file=$1
-    local expected_perms=${2:-"600"}
-    
-    if [ ! -f "$file" ]; then
-        echo "ERROR: ファイルが存在しません: $file" >&2
-        return 1
-    fi
-    
-    local actual_perms=$(stat -c %a "$file" 2>/dev/null || stat -f %Lp "$file" 2>/dev/null)
-    
-    if [ "$actual_perms" != "$expected_perms" ]; then
-        echo "WARNING: ファイル権限が推奨値と異なります: $file (現在: $actual_perms, 推奨: $expected_perms)" >&2
-        return 1
-    fi
-    
-    return 0
-}
+# エクスポート可能にする
+export -f secure_clone
+export -f validate_worktree_path
+export -f check_git_permissions

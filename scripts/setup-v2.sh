@@ -46,22 +46,15 @@ if tmux -V | grep -qE "(^tmux 3\.|^tmux [4-9]\.)"; then
     tmux select-pane -t ccteam-workers:main.2 -T "Worker3 (Infra/Test)"
 fi
 
-# 幹部セッション作成（Boss+Gemini 2分割）
-echo -e "${GREEN}幹部セッション 'ccteam-boss' を作成中...${NC}"
+# Bossセッション作成（Boss単独）
+echo -e "${GREEN}Bossセッション 'ccteam-boss' を作成中...${NC}"
 tmux new-session -d -s ccteam-boss -n main
-
-# 左右に分割
-tmux split-window -h -t ccteam-boss:main
 
 # ペインに名前を設定
 if tmux -V | grep -qE "(^tmux 3\.|^tmux [4-9]\.)"; then
-    echo "幹部ペインに名前を設定中..."
+    echo "Bossペインに名前を設定中..."
     tmux select-pane -t ccteam-boss:main.0 -T "Boss (Manager)"
-    tmux select-pane -t ccteam-boss:main.1 -T "Gemini (Advisor)"
 fi
-
-# レイアウトを均等に調整
-tmux select-layout -t ccteam-boss:main even-horizontal
 
 # ログファイルの初期化
 echo "ログファイルを初期化中..."
@@ -69,7 +62,7 @@ touch logs/boss.log
 touch logs/worker1.log
 touch logs/worker2.log
 touch logs/worker3.log
-touch logs/gemini.log
+# Geminiログは不要
 touch logs/system.log
 touch logs/communication.log
 
@@ -85,9 +78,8 @@ Sessions:
   - Pane 1: Worker2 (Backend)
   - Pane 2: Worker3 (Infrastructure/Testing)
   
-- ccteam-boss: Executive session (2-way split)
+- ccteam-boss: Boss session
   - Pane 0: Boss (Strategic Manager)
-  - Pane 1: Gemini (AI Strategic Advisor)
 
 Note: Boss manages all workers from the executive session.
 EOF
@@ -104,7 +96,7 @@ echo -e "${GREEN}✅ セットアップが完了しました！${NC}"
 echo ""
 echo "📋 新しいセッション構成:"
 echo -e "  - ${BLUE}ccteam-workers${NC}: Worker1, Worker2, Worker3（3分割）"
-echo -e "  - ${RED}ccteam-boss${NC}: Boss + Gemini（2分割幹部）"
+echo -e "  - ${RED}ccteam-boss${NC}: Boss（管理セッション）"
 echo ""
 echo "🔧 次のステップ:"
 echo -e "  1. ワーカーセッションに接続: ${GREEN}tmux attach -t ccteam-workers${NC}"

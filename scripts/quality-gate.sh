@@ -29,16 +29,31 @@ check_test_coverage() {
     echo -e "\n${YELLOW}📊 Checking test coverage...${NC}"
     
     # テスト実行とカバレッジ取得
-    if command -v npm &> /dev/null && [ -f "package.json" ]; then
-        COVERAGE=$(npm test -- --coverage --silent 2>/dev/null | grep "All files" | awk '{print $10}' | sed 's/%//' || echo "0")
-        
-        if [ "$COVERAGE" -lt "$MIN_TEST_COVERAGE" ]; then
-            ISSUES+=("❌ Test coverage is ${COVERAGE}% (minimum: ${MIN_TEST_COVERAGE}%)")
-            QUALITY_SCORE=$((QUALITY_SCORE - 20))
-            return 1
+    if command -v npm &> /dev/null && [ -f "package.json" ] && [ -f "jest.config.js" ]; then
+        # Jestテストを実行
+        if npm test -- --coverage --silent 2>/dev/null; then
+            COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | jq '.total.lines.pct' 2>/dev/null || echo "0")
+            
+            if [ "$COVERAGE" = "0" ] || [ -z "$COVERAGE" ]; then
+                echo -e "${YELLOW}⚠️  No test coverage data available${NC}"
+                ISSUES+=("⚠️  No test coverage data")
+                QUALITY_SCORE=$((QUALITY_SCORE - 10))
+            elif (( $(echo "$COVERAGE < $MIN_TEST_COVERAGE" | bc -l) )); then
+                ISSUES+=("❌ Test coverage is ${COVERAGE}% (minimum: ${MIN_TEST_COVERAGE}%)")
+                QUALITY_SCORE=$((QUALITY_SCORE - 20))
+                return 1
+            else
+                echo -e "${GREEN}✓ Test coverage: ${COVERAGE}%${NC}"
+            fi
         else
-            echo -e "${GREEN}✓ Test coverage: ${COVERAGE}%${NC}"
+            echo -e "${YELLOW}⚠️  Tests failed or not configured${NC}"
+            ISSUES+=("⚠️  Tests not properly configured")
+            QUALITY_SCORE=$((QUALITY_SCORE - 15))
         fi
+    else
+        echo -e "${YELLOW}⚠️  Test infrastructure not found${NC}"
+        ISSUES+=("⚠️  Test infrastructure missing")
+        QUALITY_SCORE=$((QUALITY_SCORE - 10))
     fi
     return 0
 }

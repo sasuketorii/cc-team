@@ -6,7 +6,7 @@
   <h3>要件定義を入れるだけで、AIチームが24時間365日開発を続ける</h3>
   <br>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.12-blue.svg" />
+    <img src="https://img.shields.io/badge/version-0.1.14-blue.svg" />
     <img src="https://img.shields.io/badge/claude-opus--4-purple.svg" />
     <img src="https://img.shields.io/badge/by-SasukeTorii-orange.svg" />
     <img src="https://img.shields.io/badge/license-AGPL--3.0-green.svg" />
@@ -100,7 +100,7 @@
 git clone https://github.com/sasuketorii/cc-team.git
 
 # 2. グローバルインストール（10秒）
-cd cc-team/CCTeam && ./install.sh
+cd cc-team && ./install.sh
 
 # 完了！これで準備OK 🎉
 ```
@@ -340,7 +340,11 @@ ccteam  # または ccguide（初心者向け）
 ```
 
 #### 3. 認証を完了
-各エージェントで`2`を選択して認証
+各エージェントで`2`を選択して認証（v0.1.14から自動認証機能追加）
+```bash
+# 自動認証を実行
+./scripts/auto-auth-claude.sh
+```
 
 #### 4. 開発スタート
 ```bash
@@ -358,6 +362,8 @@ requirementsフォルダの要件を読み込んで開発を開始してくだ�
 | `ccsend boss "message"` | Bossへ指示 | タスク追加・変更 |
 | `ccs` | ステータス確認 | 全体状況把握 |
 | `cckill` | 終了 | 作業完了時 |
+| `ccauth` | 自動認証 | 認証画面で停止時 |
+| `ccrollcall` | 自動点呼 | エージェント状態確認 |
 
 ---
 
@@ -375,6 +381,8 @@ requirementsフォルダの要件を読み込んで開発を開始してくだ�
 ### 起動スクリプト
 - ✅ **手動認証版起動** (`launch-ccteam-v3.sh`) 🆕
 - ✅ **ガイド付き起動** (`ccteam-guided.sh`) 初心者向け
+- ✅ **自動認証スクリプト** (`auto-auth-claude.sh`) v0.1.14追加 🆕
+- ✅ **自動点呼システム** (`auto-rollcall.sh`) v0.1.14追加 🆕
 - ✅ **Claude自動起動** (expect自動化)
 - ✅ **安全起動モード** (エラーチェック付き)
 
@@ -387,18 +395,17 @@ requirementsフォルダの要件を読み込んで開発を開始してくだ�
 </details>
 
 <details>
-<summary><b>🤖 AIエージェント管理（10個） - クリックで展開</b></summary>
+<summary><b>🤖 AIエージェント管理（9個） - クリックで展開</b></summary>
 
 ### マルチエージェントシステム
 - ✅ **Boss統合アーキテクチャ** (CTO/PM役)
 - ✅ **Worker1** (フロントエンド専門)
 - ✅ **Worker2** (バックエンド専門)
 - ✅ **Worker3** (QA/DevOps専門)
-- ✅ **Gemini** (調査・ドキュメント支援)
 
 ### エージェント間通信
-- ✅ **メッセージ送信システム** (`agent-send.sh`)
-- ✅ **拡張メッセージング** (エラーハンドリング強化)
+- ✅ **メッセージ送信システム** (`agent-send.sh`) v0.1.14改善
+- ✅ **認証状態チェック** (Bypassing Permissions検出) v0.1.14追加 🆕
 - ✅ **tmuxペインマッピング**
 - ✅ **通信履歴ログ**
 - ✅ **Ctrl+Cプロンプトクリア**
@@ -498,13 +505,16 @@ requirementsフォルダの要件を読み込んで開発を開始してくだ�
 </details>
 
 <details>
-<summary><b>🧪 テスト・検証（5個） - クリックで展開</b></summary>
+<summary><b>🧪 テスト・検証（8個） - クリックで展開</b></summary>
 
 - ✅ **クイックヘルスチェック** (基本動作確認)
 - ✅ **システムヘルスチェック** (網羅的検証)
 - ✅ **統合テストスイート** (18項目自動テスト)
 - ✅ **テストログアーカイブ** (履歴管理)
 - ✅ **テストアーティファクト削除**
+- ✅ **Jest テストインフラ** (v0.1.14追加) 🆕
+- ✅ **単体テスト** (`tests/unit/`) v0.1.14追加 🆕
+- ✅ **統合テスト** (`tests/integration/`) v0.1.14追加 🆕
 
 </details>
 
